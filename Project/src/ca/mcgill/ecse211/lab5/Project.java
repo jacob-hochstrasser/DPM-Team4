@@ -15,6 +15,23 @@ public class Project {
     /*<--------------Static Root Class Variables -- Motors, Sensors, and Odometers that will be used by multiple classes -------------------> */
     /*<--------------Motor Port Mappings: LMotor -> B, Scanner -> C, RMotor -> D -----------------------------------------------------------> */
     /*<--------------Sensor Port Mappings: LLocalizingLS -> S1, USSensor -> S2, IDLightSensor -> S3 RLocalizingLS -> S4 --------------------> */
+    //-----<Important Constants>-----//
+    /**
+     * Polling interval for light sensor
+     */
+    private static final int LOCALIZING_INTERVAL_LIGHT = 25;//ms
+    /**
+     * Polling interval for US Sensor
+     */
+    private static final int LOCALIZING_INTERVAL_ULTRASONIC = 25;//ms
+    /**
+     * Radius of the wheels
+     */
+    private static final double RADIUS = 2.1;
+    /**
+     * Width of wheel base
+     */
+    private static final double TRACK = 9.2;
     /**
      * Static variable for left motor
      */
@@ -28,33 +45,43 @@ public class Project {
      */
     private static final EV3MediumRegulatedMotor SCANNER = new EV3MediumRegulatedMotor(LocalEV3.get().getPort("C"));
     /**
+     * Static variable for left localizing light sensor poller
+     */
+    private static final SensorPoller LOCALIZING_LEFT = new LightSensorPoller("S1", LOCALIZING_INTERVAL_LIGHT, false);
+    /**
+     * Static variable for right localizing light sensor poller
+     */
+    private static final SensorPoller LOCALIZING_RIGHT = new LightSensorPoller("S4", LOCALIZING_INTERVAL_LIGHT, false);
+    /**
+     * Static variable for ultrasonic sensor poller
+     */
+    private static final SensorPoller ULTRASONIC = new UltrasonicSensorPoller("S3", LOCALIZING_INTERVAL_ULTRASONIC);
+    /**
      * Static variable for LCD display of brick
      */
     private static final TextLCD LCD = LocalEV3.get().getTextLCD();
+    /**
+     * Odometer to keep track of where the robot is
+     */
+    private final static Odometer odo = new Odometer(LEFT_MOTOR, RIGHT_MOTOR, RADIUS, TRACK);
+    /**
+     * Navigation object to handle the logic for where the robot should go
+     */
+    private static Navigation NAVI;
 
     /**
      * Main method of Lab 5. Provides a menu interface for choosing field test parameters and initializes/prepares all hardware needed.
      * @param args
      */
     public static void main(String[] args) {
-        
+
         int buttonChoice; // integer to track which button was pressed
-        
-        /*--- Setting up the sensors ---*/
-        @SuppressWarnings("resource")
-        SensorModes LOCALIZING_LIGHT_SENSOR = new EV3ColorSensor(LocalEV3.get().getPort("S1"));
-        @SuppressWarnings("resource")
-        SensorModes ULTRASONIC_SENSOR = new EV3UltrasonicSensor(LocalEV3.get().getPort("S2"));
+
+        /*--- Setting up the identifying sensor ---*/
         @SuppressWarnings("resource")
         SensorModes IDENTIFYING_LIGHT_SENSOR = new EV3ColorSensor(LocalEV3.get().getPort("S3"));
-        
-        SampleProvider locLSRed = LOCALIZING_LIGHT_SENSOR.getMode("Red");
-        SampleProvider idLSRGB = LOCALIZING_LIGHT_SENSOR.getMode("RGB");
-        SampleProvider usDistance = ULTRASONIC_SENSOR.getMode("Distance");
-        
-        float[] lLSData = new float[locLSRed.sampleSize()];
-        float[] usData = new float[usDistance.sampleSize()];
-        
+        SampleProvider idLSRGB = IDENTIFYING_LIGHT_SENSOR.getMode("RGB");
+
         /*--- Variables to store the parameters specified in the Lab 5 instructions ---*/
         /*--- Starting corner -> [0,3] Target color -> {1 - Blue, 2 - Green, 3 - Yellow, 4 - Red} Lower left of search corner -> ([0,8], [0,8]) Upper right of search corner -> ([0,8], [0,8]) ---*/
         int startingCorner = 0, targetColor = 1;
@@ -150,12 +177,14 @@ public class Project {
                 System.exit(0);
             }
         } while(buttonChoice != Button.ID_ENTER);
-        
+
+        NAVI = new Navigation(LEFT_MOTOR, RIGHT_MOTOR, LOCALIZING_LEFT, LOCALIZING_RIGHT, ULTRASONIC, 1, TRACK, RADIUS);
+        NAVI.demo();
         Identifier identifier = new Identifier(SCANNER, targetColor, idLSRGB, 100);
 
         while (Button.waitForAnyPress() != Button.ID_ESCAPE);
         System.exit(0);
     }
 
-    
+
 }
