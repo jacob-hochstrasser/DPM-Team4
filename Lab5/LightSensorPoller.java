@@ -60,4 +60,12 @@ public class LightSensorPoller implements SensorPoller{
 		return measure/MEASURING_SCOPE;
 	}
 	
+	/**
+	 * This method immediately returns a measurement
+	 */
+	@Override
+	public float getData() {
+		light.fetchSample(lsData, 0);
+		return lsData[0]*100;
+	}
 }

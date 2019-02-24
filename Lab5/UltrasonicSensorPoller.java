@@ -54,4 +54,12 @@ public class UltrasonicSensorPoller implements SensorPoller{
 		}
 		return measure/MEASURING_SCOPE;
 	}
+	/**
+	 * This method immediately returns a measurement
+	 */
+	@Override
+	public float getData() {
+		ultrasonic.fetchSample(usData, 0);
+		return usData[0]*100;
+	}
 }

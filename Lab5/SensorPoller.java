@@ -9,4 +9,9 @@ public interface SensorPoller {
 	 * @return average measurement
 	 */
 	public float getData(int MEASURING_SCOPE);
+	
+	/**
+	 * This method immediately returns a measurement
+	 */
+	public float getData();
 }
