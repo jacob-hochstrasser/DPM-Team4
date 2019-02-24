@@ -15,6 +15,8 @@ public class UltrasonicSensorPoller implements SensorPoller{
 	
 	//-----<Important Constant>-----//
 	private int TIME_INTERVAL;
+	private int INFTY = 255;
+	private int FILTER_SCOPE = 20;
 	
 	//-----<Data>-----//
 	private float[] usData = new float[1];
@@ -59,7 +61,13 @@ public class UltrasonicSensorPoller implements SensorPoller{
 	 */
 	@Override
 	public float getData() {
-		ultrasonic.fetchSample(usData, 0);
-		return usData[0]*100;
+		for (int i = 0; i<FILTER_SCOPE; i++) {
+			ultrasonic.fetchSample(usData, 0);
+			float data = usData[0]*100;
+			if (data<INFTY) {
+				return data;
+			}
+		}
+		return INFTY;
 	}
 }

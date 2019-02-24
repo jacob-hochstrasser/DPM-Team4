@@ -11,20 +11,28 @@ import lejos.robotics.SampleProvider;
 
 public class Project {
 	//-----<Important Constant>-----//
-	private static final int LOCALIZING_INTERVAL = 25;//ms
+	private static final int LOCALIZING_INTERVAL_LIGHT = 25;//ms
+	private static final int LOCALIZING_INTERVAL_ULTRASONIC = 25;//ms
+	private static final double RADIUS = 2.1;
+	private static final double TRACK = 9.2;
 	
     private static final EV3LargeRegulatedMotor LEFT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
     private static final EV3LargeRegulatedMotor RIGHT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
     
     //-----<Sensor>-----//
     //Light Sensors//
-    private static final SensorPoller LOCALIZING_LEFT = new LightSensorPoller("S1", LOCALIZING_INTERVAL, false);
-    private static final SensorPoller LOCALIZING_RIGHT = new LightSensorPoller("S4", LOCALIZING_INTERVAL, false);
+    private static final SensorPoller LOCALIZING_LEFT = new LightSensorPoller("S1", LOCALIZING_INTERVAL_LIGHT, false);
+    private static final SensorPoller LOCALIZING_RIGHT = new LightSensorPoller("S4", LOCALIZING_INTERVAL_LIGHT, false);
+    private static final SensorPoller ULTRASONIC = new UltrasonicSensorPoller("S3", LOCALIZING_INTERVAL_ULTRASONIC);
     
     
     //-----<Navigation>-----//
     private static Navigation NAVI;
     
+    //-----<Odometer>-----//
+    private final static Odometer odo = new Odometer(LEFT_MOTOR, RIGHT_MOTOR, RADIUS, TRACK);
+    
+    //-----<LCD>-----//
     private static final TextLCD LCD = LocalEV3.get().getTextLCD();
 
 
@@ -110,7 +118,7 @@ public class Project {
             }
         } while(buttonChoice != Button.ID_ENTER);
         */
-        NAVI = new Navigation(LEFT_MOTOR, RIGHT_MOTOR, LOCALIZING_LEFT, LOCALIZING_RIGHT, 1);
+        NAVI = new Navigation(LEFT_MOTOR, RIGHT_MOTOR, LOCALIZING_LEFT, LOCALIZING_RIGHT, ULTRASONIC, 1, TRACK, RADIUS);
         NAVI.demo();
         
     }
