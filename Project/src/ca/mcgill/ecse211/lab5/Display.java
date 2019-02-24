@@ -1,8 +1,8 @@
-package ca.mcgill.ecse211.project;
+package ca.mcgill.ecse211.lab5;
 
 import java.text.DecimalFormat;
 
-import ca.mcgill.ecse211.project.Odometer;
+import ca.mcgill.ecse211.lab5.Odometer;
 import lejos.hardware.Button;
 import lejos.hardware.lcd.TextLCD;
 

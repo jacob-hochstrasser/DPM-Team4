@@ -1,4 +1,4 @@
-package ca.mcgill.ecse211.project;
+package ca.mcgill.ecse211.lab5;
 
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
@@ -47,9 +47,13 @@ public class Project {
         SensorModes ULTRASONIC_SENSOR = new EV3UltrasonicSensor(LocalEV3.get().getPort("S2"));
         @SuppressWarnings("resource")
         SensorModes IDENTIFYING_LIGHT_SENSOR = new EV3ColorSensor(LocalEV3.get().getPort("S3"));
+        
         SampleProvider locLSRed = LOCALIZING_LIGHT_SENSOR.getMode("Red");
         SampleProvider idLSRGB = LOCALIZING_LIGHT_SENSOR.getMode("RGB");
         SampleProvider usDistance = ULTRASONIC_SENSOR.getMode("Distance");
+        
+        float[] lLSData = new float[locLSRed.sampleSize()];
+        float[] usData = new float[usDistance.sampleSize()];
         
         /*--- Variables to store the parameters specified in the Lab 5 instructions ---*/
         /*--- Starting corner -> [0,3] Target color -> {1 - Blue, 2 - Green, 3 - Yellow, 4 - Red} Lower left of search corner -> ([0,8], [0,8]) Upper right of search corner -> ([0,8], [0,8]) ---*/
@@ -146,50 +150,12 @@ public class Project {
                 System.exit(0);
             }
         } while(buttonChoice != Button.ID_ENTER);
+        
+        Identifier identifier = new Identifier(SCANNER, targetColor, idLSRGB, 100);
 
         while (Button.waitForAnyPress() != Button.ID_ESCAPE);
         System.exit(0);
     }
 
-    //SCANNER.setAcceleration(1000);
-    //SCANNER.setSpeed(100);
-    //float[] usData = new float[usDistance.sampleSize()];
-    //float[][] temp = new float[100][3];
-    //        (new Thread() {
-    //            public void run() {
-    //                while(Button.waitForAnyPress() != Button.ID_ESCAPE);
-    //                System.exit(0);
-    //            }
-    //        }).start();
-    //        (new Thread() {
-    //            public void run() {
-    //                while(true) {
-    //                    SCANNER.rotate(255, false);
-    //                    SCANNER.rotate(-255, false);
-    //                }
-    //            }
-    //        }).start();
-    //        for(int i=0; i< temp.length; i++) {
-    //            usDistance.fetchSample(usData, 0);
-    //            idLSRGB.fetchSample(temp[i], 0);
-    //            try {
-    //                Thread.sleep(100);  
-    //            } catch(InterruptedException e) {
-    //                e.printStackTrace();
-    //            } 
-    //        }
-    //        System.out.println("Red: ");
-    //        for(float[] f : temp) {
-    //            System.out.println(f[0]);
-    //        }
-    //        System.out.println("Green: ");
-    //        for(float[] f : temp) {
-    //            System.out.println(f[1]);
-    //        }
-    //        System.out.println("Blue: ");
-    //        for(float[] f : temp) {
-    //            System.out.println(f[2]);
-    //        }
-    //        while(SCANNER.getTachoCount() != 0);
-    //        System.exit(0);
+    
 }
