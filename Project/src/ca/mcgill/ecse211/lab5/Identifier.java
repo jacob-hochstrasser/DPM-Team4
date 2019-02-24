@@ -1,6 +1,8 @@
 package ca.mcgill.ecse211.lab5;
 
 import lejos.hardware.Button;
+import lejos.hardware.ev3.LocalEV3;
+import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.robotics.SampleProvider;
@@ -106,6 +108,7 @@ public class Identifier {
     private float [][] samples;
     private float [] sampleMeans = new float[3];
     private float [] sampleErrors = new float[3];
+    private TextLCD lcd;
     
     /**
      * Creates an Identifier object with the specified parameters
@@ -113,7 +116,7 @@ public class Identifier {
      * @param idLSRGB - The sample provider for the light sensor (RGB mode)
      * @param numSamples - The number of samples taken when scanning
      */
-    public Identifier (EV3MediumRegulatedMotor scanner, int target, SampleProvider idLSRGB, int numSamples) {
+    public Identifier (EV3MediumRegulatedMotor scanner, int target, SampleProvider idLSRGB, int numSamples, TextLCD lcd) {
         this.scanner = scanner;
         this.target = TARGET_COLOR.decodeValue(target);
         this.targetInt = target;
@@ -125,6 +128,7 @@ public class Identifier {
         }
         this.isSampling = false;
         samples = new float[numSamples][idLSRGB.sampleSize()];
+        this.lcd = lcd;
         
         scanner.setAcceleration(ACCELERATION);
         scanner.setSpeed(SPEED);
@@ -136,6 +140,7 @@ public class Identifier {
      * @return boolean representing whether a target was found
      */
     public boolean isTargetCan() {
+        lcd.drawString("Object found", 0, 0);
         this.isSampling = true;
         (new Thread() {
             public void run() {
@@ -155,8 +160,28 @@ public class Identifier {
         computeNormalizedMeans(samples, sampleMeans);
         computeErrors(sampleMeans, sampleErrors, targetInt);
         if((Math.abs(sampleErrors[0]) < 2 * LI_REFERENCE_SDS[targetInt][0]) && (Math.abs(sampleErrors[1]) < 2 * LI_REFERENCE_SDS[targetInt][1]) && (Math.abs(sampleErrors[2]) < 2 * LI_REFERENCE_SDS[targetInt][2])) {
+            lcd.drawString(TARGET_COLOR.tcToString(targetInt), 0, 1);
+            LocalEV3.get().getAudio().systemSound(0);
+            try {
+                Thread.sleep(2000);
+            } catch(InterruptedException e) {
+                e.printStackTrace();
+            }
             return true; 
         } else {
+            for(int i=1; i < LI_REFERENCE_MEANS.length; i++) {
+                if(i != targetInt) {
+                    if((Math.abs(sampleErrors[0]) < 2 * LI_REFERENCE_SDS[i][0]) && (Math.abs(sampleErrors[1]) < 2 * LI_REFERENCE_SDS[i][1]) && (Math.abs(sampleErrors[2]) < 2 * LI_REFERENCE_SDS[i][2])) {
+                        lcd.drawString(TARGET_COLOR.tcToString(i), 0, 1);
+                    }
+                }
+            }
+            LocalEV3.get().getAudio().systemSound(1);
+            try {
+                Thread.sleep(2000);
+            } catch(InterruptedException e) {
+                e.printStackTrace();
+            }
             return false;
         }
     }
