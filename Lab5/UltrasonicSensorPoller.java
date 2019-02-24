@@ -9,9 +9,9 @@ import lejos.robotics.SampleProvider;
 
 public class UltrasonicSensorPoller implements SensorPoller{
 	//-----<LightSensor>-----//
-	private static Port usPort;
-	private static SensorModes ultrasonicSensor;
-	private static SampleProvider ultrasonic;
+	private Port usPort;
+	private SensorModes ultrasonicSensor;
+	private SampleProvider ultrasonic;
 	
 	//-----<Important Constant>-----//
 	private int TIME_INTERVAL;
@@ -28,7 +28,7 @@ public class UltrasonicSensorPoller implements SensorPoller{
 	public UltrasonicSensorPoller(String port, int TIME_INTERVAL) {
 		Sound.setVolume(100);
 		this.TIME_INTERVAL = TIME_INTERVAL;
-		usPort = LocalEV3.get().getPort("port");
+		usPort = LocalEV3.get().getPort(port);
 		ultrasonicSensor = new EV3UltrasonicSensor(usPort);
 		ultrasonic = ultrasonicSensor.getMode("Distance");
 		Sound.beep();

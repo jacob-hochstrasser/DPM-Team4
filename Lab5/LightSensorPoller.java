@@ -9,9 +9,9 @@ import lejos.robotics.SampleProvider;
 
 public class LightSensorPoller implements SensorPoller{
 	//-----<LightSensor>-----//
-	private static Port lsPort;
-	private static SensorModes lightSensor;
-	private static SampleProvider light;
+	private Port lsPort;
+	private SensorModes lightSensor;
+	private SampleProvider light;
 	
 	//-----<Important Constant>-----//
 	private int TIME_INTERVAL;
@@ -29,7 +29,7 @@ public class LightSensorPoller implements SensorPoller{
 	public LightSensorPoller(String port, int TIME_INTERVAL, boolean isColorIdentification) {
 		Sound.setVolume(100);
 		this.TIME_INTERVAL = TIME_INTERVAL;
-		lsPort = LocalEV3.get().getPort("port");
+		lsPort = LocalEV3.get().getPort(port);
 		lightSensor = new EV3ColorSensor(lsPort);
 		if (isColorIdentification) {
 			light = ((EV3ColorSensor)lightSensor).getRGBMode();
