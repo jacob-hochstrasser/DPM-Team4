@@ -35,11 +35,11 @@ public class Project {
     /**
      * Static variable for left motor
      */
-    private static final EV3LargeRegulatedMotor LEFT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
-    /**
-     * Static variable for right motor
-     */
-    private static final EV3LargeRegulatedMotor RIGHT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+//    private static final EV3LargeRegulatedMotor LEFT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
+//    /**
+//     * Static variable for right motor
+//     */
+//    private static final EV3LargeRegulatedMotor RIGHT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
     /**
      * Static variable for scanning motor
      */
@@ -47,15 +47,15 @@ public class Project {
     /**
      * Static variable for left localizing light sensor poller
      */
-    private static final SensorPoller LOCALIZING_LEFT = new LightSensorPoller("S1", LOCALIZING_INTERVAL_LIGHT, false);
+    //private static final SensorPoller LOCALIZING_LEFT = new LightSensorPoller("S1", LOCALIZING_INTERVAL_LIGHT, false);
     /**
      * Static variable for right localizing light sensor poller
-     */
-    private static final SensorPoller LOCALIZING_RIGHT = new LightSensorPoller("S4", LOCALIZING_INTERVAL_LIGHT, false);
-    /**
-     * Static variable for ultrasonic sensor poller
-     */
-    private static final SensorPoller ULTRASONIC = new UltrasonicSensorPoller("S3", LOCALIZING_INTERVAL_ULTRASONIC);
+//     */
+//    private static final SensorPoller LOCALIZING_RIGHT = new LightSensorPoller("S4", LOCALIZING_INTERVAL_LIGHT, false);
+//    /**
+//     * Static variable for ultrasonic sensor poller
+//     */
+//    private static final SensorPoller ULTRASONIC = new UltrasonicSensorPoller("S2", LOCALIZING_INTERVAL_ULTRASONIC);
     /**
      * Static variable for LCD display of brick
      */
@@ -63,7 +63,7 @@ public class Project {
     /**
      * Odometer to keep track of where the robot is
      */
-    private final static Odometer odo = new Odometer(LEFT_MOTOR, RIGHT_MOTOR, RADIUS, TRACK);
+    //private final static Odometer odo = new Odometer(LEFT_MOTOR, RIGHT_MOTOR, RADIUS, TRACK);
     /**
      * Navigation object to handle the logic for where the robot should go
      */
@@ -74,7 +74,7 @@ public class Project {
      * @param args
      */
     public static void main(String[] args) {
-
+        
         int buttonChoice; // integer to track which button was pressed
 
         /*--- Setting up the identifying sensor ---*/
@@ -84,9 +84,71 @@ public class Project {
 
         /*--- Variables to store the parameters specified in the Lab 5 instructions ---*/
         /*--- Starting corner -> [0,3] Target color -> {1 - Blue, 2 - Green, 3 - Yellow, 4 - Red} Lower left of search corner -> ([0,8], [0,8]) Upper right of search corner -> ([0,8], [0,8]) ---*/
-        int startingCorner = 0, targetColor = 1;
+        int mode = 1, startingCorner = 0, targetColor = 1;
         int[] ll = new int[2];
         int[] ur = new int[2];
+        //        float[] temp = new float[idLSRGB.sampleSize()];
+        //        while(Button.waitForAnyPress(1) != Button.ID_ESCAPE) {
+        //            idLSRGB.fetchSample(temp, 0);
+        //            System.out.println(temp[0] + "," + temp[1] + "," + temp[2]);
+        //            LCD.clear();
+        //        }
+        //        
+        //                while(Button.waitForAnyPress() != Button.ID_ENTER);
+        SCANNER.setAcceleration(1000);
+        SCANNER.setSpeed(90);
+        float[][] temp = new float[100][3];
+        float[] means = new float[3];
+        float[] sds = new float[3];
+        (new Thread() {
+            public void run() {
+                SCANNER.rotate(180, false);
+                SCANNER.rotate(-180, false);
+            }
+        }).start();
+        for(int i = 0; i < temp.length; i++) {
+            idLSRGB.fetchSample(temp[i], 0);
+            try {
+                // sampling rate depends on sample size
+                Thread.sleep(40);  
+            } catch(InterruptedException e) {
+                e.printStackTrace();
+            } 
+        }
+
+        Identifier.computeMeans(temp, means);
+        Identifier.normalize(means);
+        Identifier.computeStdDev(temp, means, sds);
+        //Identifier.normalize(sds);
+                System.out.print("{");
+                for(float f : means) {
+                    System.out.print(f + "f, ");
+                }
+                System.out.print("}\n");
+                System.out.print("{");
+                for(float f : sds) {
+                    System.out.print(f + "f, ");
+                }
+                System.out.println("}");
+        //        for(float[] f: temp) {
+        //            System.out.println(f[0] + "," + f[1] + "," + f[2]);
+        //        }
+        //System.exit(0);
+
+        /*--- Pick mode (1 - Color id, 2 - Field test) ---*/
+        do {
+            LCD.clear();
+            LCD.drawString("Mode: ", (LCD.getTextWidth()/2)-3, 0);
+            LCD.drawString("< " + mode + " >", (LCD.getTextWidth()/2)-3, 2);
+            buttonChoice = Button.waitForAnyPress();
+            if(buttonChoice == Button.ID_LEFT && mode > 1) {
+                mode--;
+            } else if(buttonChoice == Button.ID_RIGHT && mode < 2) {
+                mode++;
+            } else if(buttonChoice == Button.ID_ESCAPE) {
+                System.exit(0);
+            }
+        } while(buttonChoice != Button.ID_ENTER);
 
         /*--- Pick the starting corner ---*/
         do {
@@ -177,10 +239,30 @@ public class Project {
                 System.exit(0);
             }
         } while(buttonChoice != Button.ID_ENTER);
+        
+        Identifier identifier = new Identifier(SCANNER, targetColor, idLSRGB, 100, LCD);
+        if(mode == 1) {
+            do {
+                LCD.clear();
+                //if(ULTRASONIC.getData() < Identifier.SCANNING_DISTANCE) {
+                identifier.isTargetCan();
+                //}
+                //LCD.drawString("" + ULTRASONIC.getData(), 0, 4);
+                buttonChoice = Button.waitForAnyPress(10);
+            } while(buttonChoice != Button.ID_ESCAPE);
+            System.exit(0);
+        } else {
+            do {
+                buttonChoice = Button.waitForAnyPress(10);
+                if(buttonChoice == Button.ID_ENTER) {
+                    identifier.isTargetCan();
+                }
+            } while(buttonChoice != Button.ID_ESCAPE);
+            System.exit(0);
+        }
 
-        NAVI = new Navigation(LEFT_MOTOR, RIGHT_MOTOR, LOCALIZING_LEFT, LOCALIZING_RIGHT, ULTRASONIC, 1, TRACK, RADIUS);
-        NAVI.demo();
-        Identifier identifier = new Identifier(SCANNER, targetColor, idLSRGB, 100);
+        //        NAVI = new Navigation(LEFT_MOTOR, RIGHT_MOTOR, LOCALIZING_LEFT, LOCALIZING_RIGHT, ULTRASONIC, 1, TRACK, RADIUS);
+        //        NAVI.demo();
 
         while (Button.waitForAnyPress() != Button.ID_ESCAPE);
         System.exit(0);

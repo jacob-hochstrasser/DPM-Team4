@@ -71,23 +71,23 @@ public class Identifier {
     /**
      * The distance the robot stops from the can to start scanning it
      */
-    public static final float SCANNING_DISTANCE = 2.5f;
+    public static final float SCANNING_DISTANCE = 5.0f;
     
     /*<----------------------------------- Private ------------------------------------------------->*/
     /**
      * Normalized mean RGB values of the four can colors
      */
-    private static final float[][] LI_REFERENCE_MEANS = {{0.5300081f, 0.70231813f, 0.475227f},
-            {0.53296834f, 0.6995804f, 0.47595385f},
-            {0.5332132f, 0.70027846f, 0.47465125f},
-            {0.5293638f, 0.7022591f, 0.47603157f}};
+    private static final float[][] LI_REFERENCE_MEANS = {{0.35362998f, 0.2969332f, 0.10991809f}, 
+            {0.2804255f, 0.18570383f, 0.04182702f}, 
+            {0.71931106f, 0.11860263f, 0.03738072f}, 
+            {0.8550641f, 0.10356925f, 0.044857424f}};
     /**
      * Standard deviation of RGB samples of four can colors
      */
-    private static final float[][] LI_REFERENCE_SDS = {{0.3569843f, 0.4730426f, 0.32008716f},
-            {0.357979f, 0.46988732f, 0.31968448f},
-            {0.35736787f, 0.4693373f, 0.31811908f},
-            {0.35569653f, 0.4718699f, 0.3198611f}};
+    private static final float[][] LI_REFERENCE_SDS = {{0.031516474f, 0.038391143f, 0.01112207f}, 
+            {0.010355728f, 0.025849136f, 0.010378962f}, 
+            {0.02544661f, 0.018257428f, 0.012972444f}, 
+            {0.06890812f, 0.04407912f, 0.017151868f}};
     /**
      * Scanning motor angular acceleration
      */
@@ -135,17 +135,91 @@ public class Identifier {
         
     }
     
+    public void idColor() {
+        scanCan();
+        //        idLSRGB.fetchSample(samples[0], 0);
+        //        normalize(samples[0]);
+        //        for(int i = 0; i < 3; i++) {
+        //            if(within2SDS(samples[0], LI_REFERENCE_MEANS[i], LI_REFERENCE_SDS[i])){
+        //                lcd.drawString("Object detected", 0, 0);
+        //                lcd.drawString(TARGET_COLOR.tcToString(i), 0, 2);
+        //                break;
+        //            }
+        //        }
+        try {
+            Thread.sleep(1000);
+        } catch(InterruptedException e) {
+            
+        }
+        
+        //        for(float f : samples[0]) {
+        //            System.out.print(f + ", ");
+        //        }
+        //        System.out.print("\n");
+        //        for(float f : sampleErrors) {
+        //            System.out.print(f + ", ");
+        //        }
+        //        System.out.print("\n");
+        //        try {
+        //            Thread.sleep(2000);
+        //        } catch(InterruptedException e) {
+        //        }
+        //        
+        //        for(int i=1; i < LI_REFERENCE_MEANS.length; i++) {
+        //            if((Math.abs(sampleErrors[0]) < 2 * LI_REFERENCE_SDS[i][0]) && (Math.abs(sampleErrors[1]) < 2 * LI_REFERENCE_SDS[i][1]) && (Math.abs(sampleErrors[2]) < 2 * LI_REFERENCE_SDS[i][2])) {
+        //                lcd.drawString("Object found", 0, 0);
+        //                lcd.drawString(TARGET_COLOR.tcToString(i), 0, 2);
+        //            } else {
+        //                lcd.clear();
+        //            }
+        //        }
+    }
     /**
      * Scans the current can a determines if it is the target can or not
      * @return boolean representing whether a target was found
      */
     public boolean isTargetCan() {
-        lcd.drawString("Object found", 0, 0);
-        this.isSampling = true;
+        //        lcd.drawString("Object found", 0, 0);
+        //        this.isSampling = true;
+        scanCan();
+        computeMeans(samples, sampleMeans);
+        lcd.drawString(sampleMeans[0] + ", " + sampleMeans[1] + ", " + sampleMeans[2], 0, 4);
+        
+        //computeErrors(sampleMeans, sampleErrors, targetInt);
+        //        if((Math.abs(sampleErrors[0]) < 2 * LI_REFERENCE_SDS[targetInt][0]) && (Math.abs(sampleErrors[1]) < 2 * LI_REFERENCE_SDS[targetInt][1]) && (Math.abs(sampleErrors[2]) < 2 * LI_REFERENCE_SDS[targetInt][2])) {
+        //            lcd.drawString(TARGET_COLOR.tcToString(targetInt), 0, 1);
+        //            LocalEV3.get().getAudio().systemSound(0);
+        //            try {
+        //                Thread.sleep(2000);
+        //            } catch(InterruptedException e) {
+        //                e.printStackTrace();
+        //            }
+        //            this.isSampling = false;
+        //            return true; 
+        //        } else {
+        //            for(int i=1; i < LI_REFERENCE_MEANS.length; i++) {
+        //                if(i != targetInt) {
+        //                    if((Math.abs(sampleErrors[0]) < 2 * LI_REFERENCE_SDS[i][0]) && (Math.abs(sampleErrors[1]) < 2 * LI_REFERENCE_SDS[i][1]) && (Math.abs(sampleErrors[2]) < 2 * LI_REFERENCE_SDS[i][2])) {
+        //                        lcd.drawString(TARGET_COLOR.tcToString(i), 0, 1);
+        //                    }
+        //                }
+        //            }
+        //            LocalEV3.get().getAudio().systemSound(1);
+        //            try {
+        //                Thread.sleep(2000);
+        //            } catch(InterruptedException e) {
+        //                e.printStackTrace();
+        //            }
+        //            this.isSampling = false;
+        //            return false;
+        //        }
+    }
+
+    private void scanCan() {
         (new Thread() {
             public void run() {
-                scanner.rotate(280, false);
-                scanner.rotate(-280, false);
+                scanner.rotate(180, false);
+                scanner.rotate(-180, false);
             }
         }).start();
         for(int i = 0; i < samples.length; i++) {
@@ -156,33 +230,6 @@ public class Identifier {
             } catch(InterruptedException e) {
                 e.printStackTrace();
             } 
-        }
-        computeNormalizedMeans(samples, sampleMeans);
-        computeErrors(sampleMeans, sampleErrors, targetInt);
-        if((Math.abs(sampleErrors[0]) < 2 * LI_REFERENCE_SDS[targetInt][0]) && (Math.abs(sampleErrors[1]) < 2 * LI_REFERENCE_SDS[targetInt][1]) && (Math.abs(sampleErrors[2]) < 2 * LI_REFERENCE_SDS[targetInt][2])) {
-            lcd.drawString(TARGET_COLOR.tcToString(targetInt), 0, 1);
-            LocalEV3.get().getAudio().systemSound(0);
-            try {
-                Thread.sleep(2000);
-            } catch(InterruptedException e) {
-                e.printStackTrace();
-            }
-            return true; 
-        } else {
-            for(int i=1; i < LI_REFERENCE_MEANS.length; i++) {
-                if(i != targetInt) {
-                    if((Math.abs(sampleErrors[0]) < 2 * LI_REFERENCE_SDS[i][0]) && (Math.abs(sampleErrors[1]) < 2 * LI_REFERENCE_SDS[i][1]) && (Math.abs(sampleErrors[2]) < 2 * LI_REFERENCE_SDS[i][2])) {
-                        lcd.drawString(TARGET_COLOR.tcToString(i), 0, 1);
-                    }
-                }
-            }
-            LocalEV3.get().getAudio().systemSound(1);
-            try {
-                Thread.sleep(2000);
-            } catch(InterruptedException e) {
-                e.printStackTrace();
-            }
-            return false;
         }
     }
     
@@ -210,7 +257,7 @@ public class Identifier {
         
     }
     
-    private static void computeNormalizedMeans(float[][] samples, float[] means) {
+    public static void computeMeans(float[][] samples, float[] means) {
         float sumR = 0, sumG = 0, sumB = 0;
         for(float[] f : samples) {
             sumR += f[0];
@@ -218,17 +265,19 @@ public class Identifier {
             sumB += f[2];
         }
         
-        float normalizedR = sumR/(float)samples.length;
-        float normalizedG = sumG/(float)samples.length;
-        float normalizedB = sumB/(float)samples.length;
+        float meanR = sumR/(float)samples.length;
+        float meanG = sumG/(float)samples.length;
+        float meanB = sumB/(float)samples.length;
         
-        normalizedR = (float) (normalizedR/Math.sqrt(Math.pow(normalizedR, 2) + Math.pow(normalizedG, 2) + Math.pow(normalizedB, 2)));
-        normalizedG = (float) (normalizedG/Math.sqrt(Math.pow(normalizedR, 2) + Math.pow(normalizedG, 2) + Math.pow(normalizedB, 2)));
-        normalizedB = (float) (normalizedB/Math.sqrt(Math.pow(normalizedR, 2) + Math.pow(normalizedG, 2) + Math.pow(normalizedB, 2)));
-        
-        means[0] = normalizedR;
-        means[1] = normalizedG;
-        means[2] = normalizedB;
+        means[0] = meanR;
+        means[1] = meanG;
+        means[2] = meanB;
+    }
+    
+    public static void normalize(float[] data) {
+        data[0] = (float) (data[0]/Math.sqrt(Math.pow(data[0], 2) + Math.pow(data[1], 2) + Math.pow(data[2], 2)));
+        data[1] = (float) (data[1]/Math.sqrt(Math.pow(data[0], 2) + Math.pow(data[1], 2) + Math.pow(data[2], 2)));
+        data[2] = (float) (data[2]/Math.sqrt(Math.pow(data[0], 2) + Math.pow(data[1], 2) + Math.pow(data[2], 2)));
     }
     
     private static void computeErrors(float[] data, float[] errors, int index) {
@@ -238,7 +287,7 @@ public class Identifier {
         
     }
     
-    private static void computeStdDev(float[][] samples, float[] means, float [] sds) {
+    public static void computeStdDev(float[][] samples, float[] means, float [] sds) {
         float intermR = 0, intermG = 0, intermB = 0;
         for(float[] f : samples) {
             intermR += (Math.pow(f[0] - means[0], 2));
@@ -249,5 +298,26 @@ public class Identifier {
         sds[0] = (float)Math.sqrt(intermR/(samples.length-1));
         sds[1] = (float)Math.sqrt(intermG/(samples.length-1));
         sds[2] = (float)Math.sqrt(intermB/(samples.length-1));  
+    }
+    
+    private static boolean within2SDS(float[] data, float[] ref, float[] sds) {
+        float[] result = new float[3];
+        result[0] = data[0] - ref[0];
+        result[1] = data[1] - ref[1];
+        result[2] = data[2] - ref[2];
+        if(Math.abs(result[0]) <= 2 * sds[0] && Math.abs(result[1]) <= 2 * sds[1] && Math.abs(result[2]) <= 2 * sds[2]){
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    private static float computeEuclidianDistance(float[] data, float[] ref) {
+        float[] resultArray = new float[3];
+        resultArray[0] = (float)Math.pow(data[0] - ref[0], 2);
+        resultArray[1] = (float)Math.pow(data[1] - ref[1], 2);
+        resultArray[2] = (float)Math.pow(data[2] - ref[2], 2);
+        float result = (float)Math.sqrt(resultArray[0] + resultArray[1] + resultArray[2]);
+        return result;
     }
 }
