@@ -11,7 +11,7 @@ public class Navigation {
 	private final double LS_WHEEL_DIFF = 12;//cm
 	private final int INITIALIZING_SCOPE = 25;
 	private final int MEASURING_SCOPE = 5;
-	private final int TURNING_SPEED = 75;
+	private final int TURNING_SPEED = 100;
 	private final int LOCALIZING_SPEED = 75;
 	private final int NAVIGATING_SPEED = 200;
 	private final int ACCELERATION = 500;
@@ -19,33 +19,26 @@ public class Navigation {
 	private final double TILE_SIZE = 30.48;//cm, length of one side of a tile
 	private final double STANDARD_DISTANCE_FALLING = TILE_SIZE;//cm, standard distance to distinguish falling edge
 	private final double NOTICE_MARGIN = 1;
-	private final double ROTATION_ERROR_CW = 20;
-	private double TRACK;
-	private double RADIUS;
+	private final double ROTATION_ERROR_CW = 30;
+	private final double ROTATION_ERROR_CCW = 15;
+	private double TRACK = Project.TRACK;
+	private double RADIUS = Project.RADIUS;
 	private float BLACK_LINE_LEFT;
 	private float BLACK_LINE_RIGHT;
 	private int START_CORNER;// 0 -> down left, 1 -> down right, 2 -> up right, 3 -> up left
 	
 	//-----<Motors>-----//
-	private static EV3LargeRegulatedMotor LEFT_MOTOR;
-	private static EV3LargeRegulatedMotor RIGHT_MOTOR;
+	private static EV3LargeRegulatedMotor LEFT_MOTOR = Project.LEFT_MOTOR;
+	private static EV3LargeRegulatedMotor RIGHT_MOTOR = Project.RIGHT_MOTOR;
 	
 	//-----<SensorPoller>-----//
-	private static SensorPoller LOCALIZING_LEFT;
-	private static SensorPoller LOCALIZING_RIGHT;
-	private static SensorPoller ULTRASONIC;
+	private static SensorPoller LOCALIZING_LEFT = Project.LOCALIZING_LEFT;
+	private static SensorPoller LOCALIZING_RIGHT = Project.LOCALIZING_RIGHT;
+	private static SensorPoller ULTRASONIC = Project.ULTRASONIC;
 	
 	
-	public Navigation(EV3LargeRegulatedMotor LEFT_MOTOR, EV3LargeRegulatedMotor RIGHT_MOTOR, SensorPoller LOCALIZING_LEFT,
-			SensorPoller LOCALIZING_RIGHT, SensorPoller ULTRASONIC, int START_CORNER, double TRACK, double RADIUS) {
-		this.LEFT_MOTOR = LEFT_MOTOR;
-		this.RIGHT_MOTOR = RIGHT_MOTOR;
-		this.LOCALIZING_LEFT = LOCALIZING_LEFT;
-		this.LOCALIZING_RIGHT = LOCALIZING_RIGHT;
-		this.ULTRASONIC = ULTRASONIC;
+	public Navigation(int START_CORNER) {
 		this.START_CORNER = START_CORNER;
-		this.TRACK = TRACK;
-		this.RADIUS = RADIUS;
 		Sound.setVolume(100);
 	}
 	
@@ -122,7 +115,7 @@ public class Navigation {
 		    
 		    //Turn to 0
 		    turnTo(dTheta);
-		    turnLeft(ROTATION_ERROR_CW);//Fix rotational error
+		    turnRight(ROTATION_ERROR_CW);
 		    Odometer.resetTheta();//Reset theta
 		    
 		    
@@ -130,30 +123,39 @@ public class Navigation {
 		    boolean right = false;
 		    double leftDetection = 0;
 		    double rightDetection = 0;
+		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-			    if(detectLineLeft()) {
+			    if(detectLineLeft()&&!left) {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(right) {
+			    		stop();
+			    	}
 			    }
-			    if(detectLineRight()) {
+			    if(detectLineRight()&&!right) {
 			    	right = true;
-			    	rightDetection = RIGHT_MOTOR.getTachoCount();
+			    	rightDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(left) {
+			    		stop();
+			    	}
 			    }
-		    } while(left&&right);
-		    stop();
+		    } while(!left||!right);
+		    //stop();
 		    
-		    double diff = rightDetection - leftDetection;
-		    dTheta = Math.toDegrees(Math.atan(diff/TRACK));
-		    if(dTheta>1) {
-		    	turnLeft(dTheta);
-		    } else if(dTheta<-1) {
-		    	turnRight(-dTheta);
-		    }
 		    
-		    LEFT_MOTOR.rotate(-convertDistance(diff/2+LS_WHEEL_DIFF),true);
-			RIGHT_MOTOR.rotate(-convertDistance(diff/2+LS_WHEEL_DIFF),false);
+		    double diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+		    
+		    turnLeft(dTheta);
+		    //turnRight(ROTATION_ERROR_CCW);
+		    
+		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), true);
+			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), false);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 			
 			turnRight(90);
 			
@@ -161,30 +163,42 @@ public class Navigation {
 		    right = false;
 		    leftDetection = 0;
 		    rightDetection = 0;
+		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-			    if(detectLineLeft()) {
+			    if(detectLineLeft()&&!left) {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(right) {
+			    		stop();
+			    	}
 			    }
-			    if(detectLineRight()) {
+			    if(detectLineRight()&&!right) {
 			    	right = true;
-			    	rightDetection = RIGHT_MOTOR.getTachoCount();
+			    	rightDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(left) {
+			    		stop();
+			    	}
 			    }
-		    } while(left&&right);
-		    stop();
+		    } while(!left||!right);
+		    //stop();
 		    
-		    diff = rightDetection - leftDetection;
-		    dTheta = Math.toDegrees(Math.atan(diff/TRACK));
-		    if(dTheta>1) {
-		    	turnLeft(90+dTheta);
-		    } else if(dTheta<-1) {
-		    	turnLeft(90+dTheta);
-		    }
-			
-		    stop();
 		    
+		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+		    
+		    turnLeft(dTheta);
+		    //turnRight(ROTATION_ERROR_CCW);
+		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), true);
+			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), false);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    
+			turnLeft(87);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    Odometer.setX(0);
 		    Odometer.setY(0);
 		    Odometer.setT(0);
@@ -237,42 +251,52 @@ public class Navigation {
 		    stop();
 		    
 		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
-		    double dTheta = (-45 + (pos1[2]+pos2[2])/2 + 360 + 90)%360;
+		    double dTheta = (-45 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
 		    //Turn to 0
 		    turnTo(dTheta);
-		    turnLeft(ROTATION_ERROR_CW);//Fix rotational error
+		    turnRight(ROTATION_ERROR_CW + 90);
 		    Odometer.resetTheta();//Reset theta
+		    
 		    
 		    boolean left = false;
 		    boolean right = false;
 		    double leftDetection = 0;
 		    double rightDetection = 0;
+		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-			    if(detectLineLeft()) {
+			    if(detectLineLeft()&&!left) {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(right) {
+			    		stop();
+			    	}
 			    }
-			    if(detectLineRight()) {
+			    if(detectLineRight()&&!right) {
 			    	right = true;
-			    	rightDetection = RIGHT_MOTOR.getTachoCount();
+			    	rightDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(left) {
+			    		stop();
+			    	}
 			    }
-		    } while(left&&right);
-		    stop();
+		    } while(!left||!right);
+		    //stop();
 		    
-		    double diff = rightDetection - leftDetection;
-		    dTheta = Math.toDegrees(Math.atan(diff/TRACK));
-		    if(dTheta>1) {
-		    	turnLeft(dTheta);
-		    } else if(dTheta<-1) {
-		    	turnRight(-dTheta);
-		    }
 		    
-		    LEFT_MOTOR.rotate(-convertDistance(diff/2+LS_WHEEL_DIFF),true);
-			RIGHT_MOTOR.rotate(-convertDistance(diff/2+LS_WHEEL_DIFF),false);
+		    double diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+		    
+		    turnLeft(dTheta);
+		    //turnRight(ROTATION_ERROR_CCW);
+		    
+		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), true);
+			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), false);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 			
 			turnLeft(90);
 			
@@ -280,31 +304,43 @@ public class Navigation {
 		    right = false;
 		    leftDetection = 0;
 		    rightDetection = 0;
+		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-			    if(detectLineLeft()) {
+			    if(detectLineLeft()&&!left) {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(right) {
+			    		stop();
+			    	}
 			    }
-			    if(detectLineRight()) {
+			    if(detectLineRight()&&!right) {
 			    	right = true;
-			    	rightDetection = RIGHT_MOTOR.getTachoCount();
+			    	rightDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(left) {
+			    		stop();
+			    	}
 			    }
-		    } while(left&&right);
-		    stop();
+		    } while(!left||!right);
+		    //stop();
 		    
-		    diff = rightDetection - leftDetection;
-		    dTheta = Math.toDegrees(Math.atan(diff/TRACK));
-		    if(dTheta>1) {
-		    	turnRight(90-dTheta);
-		    } else if(dTheta<-1) {
-		    	turnRight(90-dTheta);
-		    }
-			
-		    stop();
 		    
-		    Odometer.setX(0);
+		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+		    
+		    turnLeft(dTheta);
+		    //turnRight(ROTATION_ERROR_CCW);
+		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), true);
+			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), false);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    
+			turnRight(93);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    Odometer.setX(6);
 		    Odometer.setY(0);
 		    Odometer.setT(0);
 		    
@@ -361,37 +397,47 @@ public class Navigation {
 		    
 		    //Turn to 0
 		    turnTo(dTheta);
-		    turnLeft(ROTATION_ERROR_CW);//Fix rotational error
-		    Odometer.setT(180);//Reset theta
+		    turnRight(ROTATION_ERROR_CW);
+		    Odometer.resetTheta();//Reset theta
+		    
 		    
 		    boolean left = false;
 		    boolean right = false;
 		    double leftDetection = 0;
 		    double rightDetection = 0;
+		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-			    if(detectLineLeft()) {
+			    if(detectLineLeft()&&!left) {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(right) {
+			    		stop();
+			    	}
 			    }
-			    if(detectLineRight()) {
+			    if(detectLineRight()&&!right) {
 			    	right = true;
-			    	rightDetection = RIGHT_MOTOR.getTachoCount();
+			    	rightDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(left) {
+			    		stop();
+			    	}
 			    }
-		    } while(left&&right);
-		    stop();
+		    } while(!left||!right);
+		    //stop();
 		    
-		    double diff = rightDetection - leftDetection;
-		    dTheta = Math.toDegrees(Math.atan(diff/TRACK));
-		    if(dTheta>1) {
-		    	turnLeft(dTheta);
-		    } else if(dTheta<-1) {
-		    	turnRight(-dTheta);
-		    }
 		    
-		    LEFT_MOTOR.rotate(-convertDistance(diff/2+LS_WHEEL_DIFF),true);
-			RIGHT_MOTOR.rotate(-convertDistance(diff/2+LS_WHEEL_DIFF),false);
+		    double diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+		    
+		    turnLeft(dTheta);
+		    //turnRight(ROTATION_ERROR_CCW);
+		    
+		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), true);
+			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), false);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 			
 			turnRight(90);
 			
@@ -399,34 +445,46 @@ public class Navigation {
 		    right = false;
 		    leftDetection = 0;
 		    rightDetection = 0;
+		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-			    if(detectLineLeft()) {
+			    if(detectLineLeft()&&!left) {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(right) {
+			    		stop();
+			    	}
 			    }
-			    if(detectLineRight()) {
+			    if(detectLineRight()&&!right) {
 			    	right = true;
-			    	rightDetection = RIGHT_MOTOR.getTachoCount();
+			    	rightDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(left) {
+			    		stop();
+			    	}
 			    }
-		    } while(left&&right);
-		    stop();
+		    } while(!left||!right);
+		    //stop();
 		    
-		    diff = rightDetection - leftDetection;
-		    dTheta = Math.toDegrees(Math.atan(diff/TRACK));
-		    if(dTheta>1) {
-		    	turnLeft(90+dTheta);
-		    } else if(dTheta<-1) {
-		    	turnLeft(90+dTheta);
-		    }
-			
-		    stop();
 		    
-		    Odometer.setX(0);
-		    Odometer.setY(0);
+		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+		    
+		    turnLeft(dTheta);
+		    //turnRight(ROTATION_ERROR_CCW);
+		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), true);
+			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), false);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    
+			turnLeft(87);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    Odometer.setX(6);
+		    Odometer.setY(6);
 		    Odometer.setT(180);
-		    		    
+		    
 		    
 		} else if (START_CORNER == 3) {
 			//Up right
@@ -476,42 +534,52 @@ public class Navigation {
 		    stop();
 		    
 		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
-		    double dTheta = (-45 + (pos1[2]+pos2[2])/2 + 360 + 90)%360;
-		    try {Thread.sleep(500);} catch (InterruptedException e1) {}
+		    double dTheta = (-45 + (pos1[2]+pos2[2])/2 + 360)%360;
+		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
 		    //Turn to 0
 		    turnTo(dTheta);
-		    turnLeft(ROTATION_ERROR_CW);//Fix rotational error
-		    Odometer.setT(180);//Reset theta
+		    turnRight(ROTATION_ERROR_CW + 90);
+		    Odometer.resetTheta();//Reset theta
+		    
 		    
 		    boolean left = false;
 		    boolean right = false;
 		    double leftDetection = 0;
 		    double rightDetection = 0;
+		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-			    if(detectLineLeft()) {
+			    if(detectLineLeft()&&!left) {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(right) {
+			    		stop();
+			    	}
 			    }
-			    if(detectLineRight()) {
+			    if(detectLineRight()&&!right) {
 			    	right = true;
-			    	rightDetection = RIGHT_MOTOR.getTachoCount();
+			    	rightDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(left) {
+			    		stop();
+			    	}
 			    }
-		    } while(left&&right);
-		    stop();
+		    } while(!left||!right);
+		    //stop();
 		    
-		    double diff = rightDetection - leftDetection;
-		    dTheta = Math.toDegrees(Math.atan(diff/TRACK));
-		    if(dTheta>1) {
-		    	turnLeft(dTheta);
-		    } else if(dTheta<-1) {
-		    	turnRight(-dTheta);
-		    }
 		    
-		    LEFT_MOTOR.rotate(-convertDistance(diff/2+LS_WHEEL_DIFF),true);
-			RIGHT_MOTOR.rotate(-convertDistance(diff/2+LS_WHEEL_DIFF),false);
+		    double diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+		    
+		    turnLeft(dTheta);
+		    //turnRight(ROTATION_ERROR_CCW);
+		    
+		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), true);
+			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), false);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 			
 			turnLeft(90);
 			
@@ -519,33 +587,46 @@ public class Navigation {
 		    right = false;
 		    leftDetection = 0;
 		    rightDetection = 0;
+		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-			    if(detectLineLeft()) {
+			    if(detectLineLeft()&&!left) {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(right) {
+			    		stop();
+			    	}
 			    }
-			    if(detectLineRight()) {
+			    if(detectLineRight()&&!right) {
 			    	right = true;
-			    	rightDetection = RIGHT_MOTOR.getTachoCount();
+			    	rightDetection = LEFT_MOTOR.getTachoCount();
+			    	Sound.beep();
+			    	if(left) {
+			    		stop();
+			    	}
 			    }
-		    } while(left&&right);
-		    stop();
+		    } while(!left||!right);
+		    //stop();
 		    
-		    diff = rightDetection - leftDetection;
-		    dTheta = Math.toDegrees(Math.atan(diff/TRACK));
-		    if(dTheta>1) {
-		    	turnRight(90-dTheta);
-		    } else if(dTheta<-1) {
-		    	turnRight(90-dTheta);
-		    }
-			
-		    stop();
 		    
+		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+		    
+		    turnLeft(dTheta);
+		    //turnRight(ROTATION_ERROR_CCW);
+		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), true);
+			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), false);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    
+			turnRight(93);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    Odometer.setX(0);
-		    Odometer.setY(0);
-		    Odometer.setT(180);
+		    Odometer.setY(6);
+		    Odometer.setT(0);
+		    
 		    		    
 		} else {
 			Sound.beep();
@@ -592,6 +673,7 @@ public class Navigation {
 	 * @param dTheta
 	 */
 	private void turnLeft(double dTheta) {
+		if(dTheta<=1) {return;}
 		stop();
 		LEFT_MOTOR.setSpeed(TURNING_SPEED);
 		RIGHT_MOTOR.setSpeed(TURNING_SPEED);
@@ -603,8 +685,8 @@ public class Navigation {
 		if (dTheta<0) {
 			turnRight(-dTheta);
 		} else {
-		    LEFT_MOTOR.rotate(convertAngle(dTheta), true);
-		    RIGHT_MOTOR.rotate(-convertAngle(dTheta), false);
+		    LEFT_MOTOR.rotate(-convertAngle(dTheta), true);
+		    RIGHT_MOTOR.rotate(convertAngle(dTheta), false);
 		}
 	}
 	  
@@ -613,6 +695,7 @@ public class Navigation {
 	 * @param dTheta
 	 */
 	private void turnRight(double dTheta) {
+		if(dTheta<=1) {return;}
 		stop();
 		LEFT_MOTOR.setSpeed(TURNING_SPEED);
 		RIGHT_MOTOR.setSpeed(TURNING_SPEED);
@@ -624,8 +707,8 @@ public class Navigation {
 		if (dTheta<0) {
 		    turnLeft(-dTheta);
 		} else {
-		    LEFT_MOTOR.rotate(-convertAngle(dTheta), true);
-		    RIGHT_MOTOR.rotate(convertAngle(dTheta), false);
+		    LEFT_MOTOR.rotate(convertAngle(dTheta), true);
+		    RIGHT_MOTOR.rotate(-convertAngle(dTheta), false);
 		}
 	}
 	  
@@ -649,7 +732,7 @@ public class Navigation {
 	}
 	
 	private boolean detectLineRight() {
-		float rightData = LOCALIZING_LEFT.getData(MEASURING_SCOPE);
+		float rightData = LOCALIZING_RIGHT.getData(MEASURING_SCOPE);
 		return 1.15 < rightData/BLACK_LINE_RIGHT || 0.85 > rightData/BLACK_LINE_RIGHT;
 	}
 	
