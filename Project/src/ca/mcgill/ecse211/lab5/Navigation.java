@@ -19,7 +19,7 @@ public class Navigation {
 	private final double TILE_SIZE = 30.48;//cm, length of one side of a tile
 	private final double STANDARD_DISTANCE_FALLING = TILE_SIZE;//cm, standard distance to distinguish falling edge
 	private final double NOTICE_MARGIN = 1;
-	private final double ROTATION_ERROR_CW = 15;
+	private final double ROTATION_ERROR_CW = 20;
 	private double TRACK;
 	private double RADIUS;
 	private float BLACK_LINE_LEFT;
@@ -124,6 +124,7 @@ public class Navigation {
 		    turnTo(dTheta);
 		    turnLeft(ROTATION_ERROR_CW);//Fix rotational error
 		    Odometer.resetTheta();//Reset theta
+		    
 		    
 		    boolean left = false;
 		    boolean right = false;
@@ -553,6 +554,7 @@ public class Navigation {
 			System.exit(0);
 		}
 	}
+
 	
 	private void stop() {
 		LEFT_MOTOR.stop(true);
@@ -680,18 +682,5 @@ public class Navigation {
 				break;
 			}
 		} while(true);
-		/*
-		initialize();
-		LEFT_MOTOR.setSpeed(NAVIGATING_SPEED);
-		RIGHT_MOTOR.setSpeed(NAVIGATING_SPEED);
-		boolean[] detection = detectLine();
-		do {
-		LEFT_MOTOR.forward();
-		RIGHT_MOTOR.forward();
-		detection = detectLine();
-		} while(!detection[2]);
-		LEFT_MOTOR.stop(true);
-		RIGHT_MOTOR.stop(false);
-		*/
 	}
 }

@@ -36,7 +36,6 @@ public class LightSensorPoller implements SensorPoller{
 		} else {
 			light = ((EV3ColorSensor)lightSensor).getRedMode();
 		}
-		Sound.beep();
 	}
 	
 	/**
