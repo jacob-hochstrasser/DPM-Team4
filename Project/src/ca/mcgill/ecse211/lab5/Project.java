@@ -37,8 +37,8 @@ public class Project {
      */
     private static final EV3LargeRegulatedMotor LEFT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
     /**
-    * Static variable for right motor
-    */
+     * Static variable for right motor
+     */
     private static final EV3LargeRegulatedMotor RIGHT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
     /**
      * Static variable for scanning motor
@@ -53,8 +53,8 @@ public class Project {
      */
     private static final SensorPoller LOCALIZING_RIGHT = new LightSensorPoller("S4", LOCALIZING_INTERVAL_LIGHT, false);
     /**
-    * Static variable for ultrasonic sensor poller
-    */
+     * Static variable for ultrasonic sensor poller
+     */
     private static final SensorPoller ULTRASONIC = new UltrasonicSensorPoller("S2", LOCALIZING_INTERVAL_ULTRASONIC);
     /**
      * Static variable for LCD display of brick
@@ -67,31 +67,25 @@ public class Project {
     /**
      * Navigation object to handle the logic for where the robot should go
      */
-	  static final int IDENTIFYING_INTERVAL = 0;//ms
-    
+    private static final int IDENTIFYING_INTERVAL = 0;//ms
+
     //-----<Sensor>-----//
-    static final SampleProvider IDENTIFYING = (new EV3ColorSensor(LocalEV3.get().getPort("S3"))).getRGBMode();
-    
+    private static final SampleProvider IDENTIFYING = (new EV3ColorSensor(LocalEV3.get().getPort("S3"))).getRGBMode();
+
     //-----<Navigation>-----//
-    private static Navigation NAVI;
-    
-    //-----<Odometer>-----//
-    private final static Odometer odo = new Odometer(LEFT_MOTOR, RIGHT_MOTOR, RADIUS, TRACK);
-    
-    //-----<LCD>-----//
-    private static final TextLCD LCD = LocalEV3.get().getTextLCD();
-    
+    private static final Navigation NAVI;
+
     //-----<Display>----//
     private static final Display DIS = new Display(LCD);
-    
-    //-----<Identifier>-----//
-    private static Identifier IDFER;
 
-  
+    //-----<Identifier>-----//
+    private static final Identifier IDFER;
+
+
     public static void main(String[] args) {
-    	
+
         int buttonChoice;
-        
+
         /*--- Variables to store the parameters specified in the Lab 5 instructions ---*/
         /*--- Starting corner -> [0,3] Target color -> {1 - Blue, 2 - Green, 3 - Yellow, 4 - Red} Lower left of search corner -> ([0,8], [0,8]) Upper right of search corner -> ([0,8], [0,8]) ---*/
         int mode = 0, startingCorner = 0, targetColor = 1;
@@ -112,7 +106,7 @@ public class Project {
                 System.exit(0);
             }
         } while(buttonChoice != Button.ID_ENTER);
-        
+
         do {
             LCD.clear();
             LCD.drawString("Target Color: ", (LCD.getTextWidth()/2) - 7, 0);
@@ -124,7 +118,7 @@ public class Project {
                 targetColor++;
             }
         } while(buttonChoice != Button.ID_ENTER);
-        
+
         LCD.clear();
         Identifier identifier = new Identifier(SCANNER, targetColor, idLSRGB, 1000, LCD);
         if(mode == 0) {
@@ -221,17 +215,17 @@ public class Project {
                     System.exit(0);
                 }
             } while(buttonChoice != Button.ID_ENTER);
-    	
-    	odo.start();
-    	DIS.start();
-    	int buttonChoice = 0;
-        NAVI = new Navigation(0, new int[] {3,3}, new int[] {6,6});
-        System.out.println("Press enter to continue");
-        do {
-        	buttonChoice = Button.waitForAnyPress();
-        } while(buttonChoice != Button.ID_ENTER);
-        Sound.beep();
-        LCD.clear();
-        NAVI.demo();   
+
+            odo.start();
+            DIS.start();
+            int buttonChoice = 0;
+            NAVI = new Navigation(0, new int[] {3,3}, new int[] {6,6});
+            System.out.println("Press enter to continue");
+            do {
+                buttonChoice = Button.waitForAnyPress();
+            } while(buttonChoice != Button.ID_ENTER);
+            Sound.beep();
+            LCD.clear();
+            NAVI.demo();   
+        }
     }
-}
