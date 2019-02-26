@@ -26,7 +26,7 @@ public class Odometer extends Thread {
   //------<Important Constant>------//
   private final double TRACK;
   private final double RADIUS;
-  private static final long ODOMETER_PERIOD = 50; // odometer update period in ms
+  private static final long ODOMETER_PERIOD = 10; // odometer update period in ms
   
   //------<Counter>------//
   private int leftMotorTachoCount;
