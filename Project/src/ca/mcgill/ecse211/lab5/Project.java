@@ -1,9 +1,11 @@
 package ca.mcgill.ecse211.lab5;
 
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
+import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.port.Port;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.SensorModes;
@@ -13,18 +15,23 @@ public class Project {
 	//-----<Important Constant>-----//
 	static final int LOCALIZING_INTERVAL_LIGHT = 0;//ms
 	static final int LOCALIZING_INTERVAL_ULTRASONIC = 0;//ms
+	static final int IDENTIFYING_INTERVAL = 0;//ms
 	static final double RADIUS = 2.1;
 	static final double TRACK = 9.2;
 	
+	//-----<Motor>-----//
     static final EV3LargeRegulatedMotor LEFT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
     static final EV3LargeRegulatedMotor RIGHT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+    static final EV3MediumRegulatedMotor SCAN_MOTOR = new EV3MediumRegulatedMotor(LocalEV3.get().getPort("C"));
     
     //-----<Sensor>-----//
     //Light Sensors//
     static final SensorPoller LOCALIZING_LEFT = new LightSensorPoller("S1", LOCALIZING_INTERVAL_LIGHT, false);
     static final SensorPoller LOCALIZING_RIGHT = new LightSensorPoller("S4", LOCALIZING_INTERVAL_LIGHT, false);
+    static final SampleProvider IDENTIFYING = (new EV3ColorSensor(LocalEV3.get().getPort("S3"))).getRGBMode();
+
+    //Ultrasonic Sensor//
     static final SensorPoller ULTRASONIC = new UltrasonicSensorPoller("S2", LOCALIZING_INTERVAL_ULTRASONIC);
-    
     
     //-----<Navigation>-----//
     private static Navigation NAVI;
@@ -34,14 +41,18 @@ public class Project {
     
     //-----<LCD>-----//
     private static final TextLCD LCD = LocalEV3.get().getTextLCD();
+    
+    //-----<Display>----//
+    private static final Display DIS = new Display(LCD);
+    
+    //-----<Identifier>-----//
+    private static Identifier IDFER;
 
 
     public static void main(String[] args) {
     	/*
         int buttonChoice;
         
-        SampleProvider locLSRed = LOCALIZING_LIGHT_SENSOR.getMode("Red");
-        SampleProvider idLSRGB = LOCALIZING_LIGHT_SENSOR.getMode("RGB");
         int startingCorner = 0, targetColor = 1;
         int[] ll = new int[2];
         int[] ur = new int[2];
@@ -118,10 +129,19 @@ public class Project {
             }
         } while(buttonChoice != Button.ID_ENTER);
         */
+    	
     	odo.start();
-        NAVI = new Navigation(0);
-        //NAVI.demo();
-        NAVI.localize();
+    	DIS.start();
+    	int buttonChoice = 0;
+        NAVI = new Navigation(0, new int[] {3,3}, new int[] {6,6});
+        System.out.println("Press enter to continue");
+        do {
+        	buttonChoice = Button.waitForAnyPress();
+        } while(buttonChoice != Button.ID_ENTER);
+        Sound.beep();
+        LCD.clear();
+        NAVI.demo();
+        
     }
 
 }

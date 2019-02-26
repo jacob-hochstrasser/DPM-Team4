@@ -12,7 +12,7 @@ public class Navigation {
 	
 	//-----<Important Constants>-----//
 	private final double LS_DIFF = 9.6;//cm
-	private final double LS_WHEEL_DIFF = 12;//cm
+	private final double LS_WHEEL_DIFF = 13;//cm
 	private final int INITIALIZING_SCOPE = 25;
 	private final int MEASURING_SCOPE = 5;
 	private final int TURNING_SPEED = 100;
@@ -214,10 +214,10 @@ public class Navigation {
 		    
 			turnLeft(87);
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    Odometer.setX(0);
-		    Odometer.setY(0);
+		    Odometer.setX(TILE_SIZE);
+		    Odometer.setY(TILE_SIZE);
 		    Odometer.setT(0);
-		    position = new int[] {0,0,0};
+		    position = new int[] {1,1,0};
 		    
 		} else if (START_CORNER == 1) {
 			//Down right
@@ -357,9 +357,9 @@ public class Navigation {
 			turnRight(93);
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    Odometer.setX(7*TILE_SIZE);
-		    Odometer.setY(0);
+		    Odometer.setY(TILE_SIZE);
 		    Odometer.setT(0);
-		    position = new int[] {7,0,0};
+		    position = new int[] {7,1,0};
 		    
 		} else if (START_CORNER == 2) {
 			//Up left
@@ -640,10 +640,10 @@ public class Navigation {
 		    
 			turnRight(93);
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    Odometer.setX(0);
+		    Odometer.setX(TILE_SIZE);
 		    Odometer.setY(7*TILE_SIZE);
 		    Odometer.setT(0);
-		    position = new int[] {0,7,0};
+		    position = new int[] {1,7,0};
 		    		    
 		} else {
 			Sound.beep();
@@ -668,8 +668,8 @@ public class Navigation {
 			if(LL[0]==0&&LL[1]==0) {return;}
 			double x = LL[0]*=TILE_SIZE;
 			double y = LL[1]*=TILE_SIZE;
-			double dX = x;
-			double dY = y;
+			double dX = x - TILE_SIZE;
+			double dY = y - TILE_SIZE;
 		
 			turnTo(calculateTheta(dX, dY));
 			
@@ -685,7 +685,7 @@ public class Navigation {
 			double x = LL[0]*=TILE_SIZE;
 			double y = LL[1]*=TILE_SIZE;
 			double dX = x - 7*TILE_SIZE;
-			double dY = y;
+			double dY = y - TILE_SIZE;
 			
 			turnTo(calculateTheta(dX, dY));
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
@@ -701,7 +701,7 @@ public class Navigation {
 			LEFT_MOTOR.rotate(convertDistance(distance), true);
 		    RIGHT_MOTOR.rotate(convertDistance(distance), false);
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
-		    turnTo(270);
+		    turnTo(265);
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    distance = (7 - LL[0])*TILE_SIZE;
 		    LEFT_MOTOR.setSpeed(NAVIGATING_SPEED);
@@ -716,7 +716,7 @@ public class Navigation {
 			if(LL[0]==0&&LL[1]==7) {return;}
 			double x = LL[0]*=TILE_SIZE;
 			double y = LL[1]*=TILE_SIZE;
-			double dX = x;
+			double dX = x - TILE_SIZE;
 			double dY = y - 7*TILE_SIZE;
 			
 			turnTo(calculateTheta(dX, dY));
@@ -731,6 +731,87 @@ public class Navigation {
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		position[0] = LL[0];
 		position[1] = LL[1];
+		
+		boolean left = false;
+	    boolean right = false;
+	    double leftDetection = 0;
+	    double rightDetection = 0;
+	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	    LEFT_MOTOR.forward();
+	    RIGHT_MOTOR.forward();
+	    do {
+		    if(detectLineLeft()&&!left) {
+		    	left = true;
+		    	leftDetection = LEFT_MOTOR.getTachoCount();
+		    	Sound.beep();
+		    	if(right) {
+		    		stop();
+		    	}
+		    }
+		    if(detectLineRight()&&!right) {
+		    	right = true;
+		    	rightDetection = LEFT_MOTOR.getTachoCount();
+		    	Sound.beep();
+		    	if(left) {
+		    		stop();
+		    	}
+		    }
+	    } while(!left||!right);
+	    //stop();
+	    
+	    
+	    double diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+	    double dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+	    
+	    turnLeft(dTheta);
+	    //turnRight(ROTATION_ERROR_CCW);
+	    
+	    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), true);
+		RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), false);
+		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		
+		turnRight(90);
+		
+		left = false;
+	    right = false;
+	    leftDetection = 0;
+	    rightDetection = 0;
+	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	    LEFT_MOTOR.forward();
+	    RIGHT_MOTOR.forward();
+	    do {
+		    if(detectLineLeft()&&!left) {
+		    	left = true;
+		    	leftDetection = LEFT_MOTOR.getTachoCount();
+		    	Sound.beep();
+		    	if(right) {
+		    		stop();
+		    	}
+		    }
+		    if(detectLineRight()&&!right) {
+		    	right = true;
+		    	rightDetection = LEFT_MOTOR.getTachoCount();
+		    	Sound.beep();
+		    	if(left) {
+		    		stop();
+		    	}
+		    }
+	    } while(!left||!right);
+	    //stop();
+	    
+	    
+	    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+	    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+	    
+	    turnLeft(dTheta);
+	    //turnRight(ROTATION_ERROR_CCW);
+	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), true);
+		RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_WHEEL_DIFF), false);
+		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	    
+		turnLeft(87);
+		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 	}
 	
 	private void travelTo(int x, int y) {
@@ -759,9 +840,12 @@ public class Navigation {
 		        	RIGHT_MOTOR.setAcceleration(500);
 		        	LEFT_MOTOR.rotate(convertDistance(5), true);
 		    	    RIGHT_MOTOR.rotate(convertDistance(5), false);
+		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    //Detecting
+		    	    Sound.twoBeeps();
 		    	    LEFT_MOTOR.rotate(-convertDistance(5), true);
 		    	    RIGHT_MOTOR.rotate(-convertDistance(5), false);
+		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    //Hitting
 		    	    LEFT_MOTOR.rotate(convertDistance((y-currPos[1])), true);
 		    	    RIGHT_MOTOR.rotate(convertDistance((y-currPos[1])), false);
@@ -784,9 +868,12 @@ public class Navigation {
 		        	RIGHT_MOTOR.setAcceleration(500);
 		        	LEFT_MOTOR.rotate(convertDistance(5), true);
 		    	    RIGHT_MOTOR.rotate(convertDistance(5), false);
+		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    //Detecting
+		    	    Sound.twoBeeps();
 		    	    LEFT_MOTOR.rotate(-convertDistance(5), true);
 		    	    RIGHT_MOTOR.rotate(-convertDistance(5), false);
+		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    //Hitting
 		    	    currPos = Odometer.getPosition();
 		    	    LEFT_MOTOR.rotate(convertDistance((currPos[1]-y)), true);
@@ -796,7 +883,95 @@ public class Navigation {
 		    
 		}
 		
+		currPos = Odometer.getPosition();
+		if(x>currPos[0]) {
+			turnTo(90);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+			LEFT_MOTOR.rotate(convertDistance((x-currPos[0])), true);
+		    RIGHT_MOTOR.rotate(convertDistance((x-currPos[0])), false);
+		    do{
+		    	double distance = ULTRASONIC.getData();
+		    	if(distance<=5) {
+		    		stop();
+		    		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+		    		LEFT_MOTOR.setSpeed(APPROACHING_SPEED);
+		        	RIGHT_MOTOR.setSpeed(APPROACHING_SPEED);
+		        	LEFT_MOTOR.setAcceleration(500);
+		        	RIGHT_MOTOR.setAcceleration(500);
+		        	LEFT_MOTOR.rotate(convertDistance(5), true);
+		    	    RIGHT_MOTOR.rotate(convertDistance(5), false);
+		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+		    	    //Detecting
+		    	    Sound.twoBeeps();
+		    	    LEFT_MOTOR.rotate(-convertDistance(5), true);
+		    	    RIGHT_MOTOR.rotate(-convertDistance(5), false);
+		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+		    	    //Hitting
+		    	    currPos = Odometer.getPosition();
+		    	    LEFT_MOTOR.rotate(convertDistance((x-currPos[0])), true);
+		    	    RIGHT_MOTOR.rotate(convertDistance((x-currPos[0])), false);
+		    	}
+		    } while(LEFT_MOTOR.isMoving()&&RIGHT_MOTOR.isMoving());
+		} else if(x<currPos[0]) {
+			turnTo(270);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+			LEFT_MOTOR.rotate(convertDistance((currPos[0]-x)), true);
+		    RIGHT_MOTOR.rotate(convertDistance((currPos[0]-x)), false);
+		    do{
+		    	double distance = ULTRASONIC.getData();
+		    	if(distance<=5) {
+		    		stop();
+		    		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+		    		LEFT_MOTOR.setSpeed(APPROACHING_SPEED);
+		        	RIGHT_MOTOR.setSpeed(APPROACHING_SPEED);
+		        	LEFT_MOTOR.setAcceleration(500);
+		        	RIGHT_MOTOR.setAcceleration(500);
+		        	LEFT_MOTOR.rotate(convertDistance(5), true);
+		    	    RIGHT_MOTOR.rotate(convertDistance(5), false);
+		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+		    	    //Detecting
+		    	    Sound.twoBeeps();
+		    	    LEFT_MOTOR.rotate(-convertDistance(5), true);
+		    	    RIGHT_MOTOR.rotate(-convertDistance(5), false);
+		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+		    	    //Hitting
+		    	    currPos = Odometer.getPosition();
+		    	    LEFT_MOTOR.rotate(convertDistance((currPos[0]-x)), true);
+		    	    RIGHT_MOTOR.rotate(convertDistance((currPos[0]-x)), false);
+		    	}
+		    } while(LEFT_MOTOR.isMoving()&&RIGHT_MOTOR.isMoving());
+		}
 		
+	}
+	
+	private int[][] calculateNavigationPoint(){
+		int[][] result = new int[2][Math.abs(UR[0]-LL[0])*2];
+		int previous = UR[0];
+		int size = result[0].length;
+		for(int i = 0; i<size; i+=2) {
+			result[0][i] = i;
+			result[0][i+1] = i;
+			if(previous == UR[0]) {
+				previous = LL[0];
+				result[1][i] = LL[0];
+				result[1][i] = UR[0];
+			} else if(previous == LL[0]) {
+				previous = UR[0];
+				result[1][i] = UR[0];
+				result[1][i] = LL[0];
+			}
+		}
+		return result;
+	}
+	
+	private void search() {
+		int[][] coordinates = calculateNavigationPoint();
+		int size = coordinates[0].length;
+		for(int i = 0; i<size; i++) {
+			travelTo(coordinates[0][i], coordinates[1][i]);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+		}
+		travelTo(UR[0],UR[1]);
 	}
 	
 	private double calculateTheta(double dX, double dY) {
@@ -907,5 +1082,8 @@ public class Navigation {
 	public void demo() {
 		localize();
 		moveToStart();
+		search();
+		
+		
 	}
 }

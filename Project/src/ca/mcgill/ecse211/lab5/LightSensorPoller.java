@@ -36,6 +36,7 @@ public class LightSensorPoller implements SensorPoller{
 		} else {
 			light = ((EV3ColorSensor)lightSensor).getRedMode();
 		}
+		try {Thread.sleep(500);} catch (InterruptedException e) {}
 	}
 	
 	/**
