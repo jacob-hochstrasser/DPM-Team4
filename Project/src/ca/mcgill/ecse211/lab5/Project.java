@@ -27,19 +27,19 @@ public class Project {
     /**
      * Radius of the wheels
      */
-    private static final double RADIUS = 2.1;
+    public static final double RADIUS = 2.1;
     /**
      * Width of wheel base
      */
-    private static final double TRACK = 9.2;
+    public static final double TRACK = 9.2;
     /**
      * Static variable for left motor
      */
-    private static final EV3LargeRegulatedMotor LEFT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
+    public static final EV3LargeRegulatedMotor LEFT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
     /**
      * Static variable for right motor
      */
-    private static final EV3LargeRegulatedMotor RIGHT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+    public static final EV3LargeRegulatedMotor RIGHT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
     /**
      * Static variable for scanning motor
      */
@@ -47,15 +47,15 @@ public class Project {
     /**
      * Static variable for left localizing light sensor poller
      */
-    private static final SensorPoller LOCALIZING_LEFT = new LightSensorPoller("S1", LOCALIZING_INTERVAL_LIGHT, false);
+    public static final SensorPoller LOCALIZING_LEFT = new LightSensorPoller("S1", LOCALIZING_INTERVAL_LIGHT, false);
     /**
      * Static variable for right localizing light sensor poller
      */
-    private static final SensorPoller LOCALIZING_RIGHT = new LightSensorPoller("S4", LOCALIZING_INTERVAL_LIGHT, false);
+    public static final SensorPoller LOCALIZING_RIGHT = new LightSensorPoller("S4", LOCALIZING_INTERVAL_LIGHT, false);
     /**
      * Static variable for ultrasonic sensor poller
      */
-    private static final SensorPoller ULTRASONIC = new UltrasonicSensorPoller("S2", LOCALIZING_INTERVAL_ULTRASONIC);
+    public static final SensorPoller ULTRASONIC = new UltrasonicSensorPoller("S2", LOCALIZING_INTERVAL_ULTRASONIC);
     /**
      * Static variable for LCD display of brick
      */
@@ -70,16 +70,16 @@ public class Project {
     private static final int IDENTIFYING_INTERVAL = 0;//ms
 
     //-----<Sensor>-----//
-    private static final SampleProvider IDENTIFYING = (new EV3ColorSensor(LocalEV3.get().getPort("S3"))).getRGBMode();
+    private static final SampleProvider IDLSRGB = (new EV3ColorSensor(LocalEV3.get().getPort("S3"))).getRGBMode();
 
     //-----<Navigation>-----//
-    private static final Navigation NAVI;
+    private static Navigation NAVI;
 
     //-----<Display>----//
     private static final Display DIS = new Display(LCD);
 
     //-----<Identifier>-----//
-    private static final Identifier IDFER;
+    private static Identifier IDENTIFIER;
 
 
     public static void main(String[] args) {
@@ -110,7 +110,7 @@ public class Project {
         do {
             LCD.clear();
             LCD.drawString("Target Color: ", (LCD.getTextWidth()/2) - 7, 0);
-            //LCD.drawString("< " + targetColor + ": " + Identifier.TARGET_COLOR.tcToString(targetColor) + " >", (LCD.getTextWidth()/2) - (3 + Identifier.TARGET_COLOR.tcToString(targetColor).length()/2), 2);
+            LCD.drawString("< " + targetColor + ": " + Identifier.TARGET_COLOR.tcToString(targetColor) + " >", (LCD.getTextWidth()/2) - (3 + Identifier.TARGET_COLOR.tcToString(targetColor).length()/2), 2);
             buttonChoice = Button.waitForAnyPress();
             if(buttonChoice == Button.ID_LEFT && targetColor > 1) {
                 targetColor--;
@@ -120,7 +120,7 @@ public class Project {
         } while(buttonChoice != Button.ID_ENTER);
 
         LCD.clear();
-        Identifier identifier = new Identifier(SCANNER, targetColor, idLSRGB, 1000, LCD);
+        IDENTIFIER = new Identifier(SCANNER, targetColor, IDLSRGB, 1000, LCD);
         if(mode == 0) {
             LCD.drawString("Press enter", (LCD.getTextWidth()/2) - 5, 0);
             LCD.drawString("to scan", (LCD.getTextWidth()/2) - 3, 1);
@@ -128,14 +128,14 @@ public class Project {
                 buttonChoice = Button.waitForAnyPress(1);
                 if(buttonChoice == Button.ID_ENTER) {
                     LCD.clear();
-                    identifier.computeReferences();
+                    IDENTIFIER.computeReferences();
                 }
             } while(buttonChoice != Button.ID_ESCAPE);
             System.exit(0);
         } else if(mode == 1) {
             LCD.clear();
             do {
-                identifier.idColor();
+                IDENTIFIER.idColor();
                 buttonChoice = Button.waitForAnyPress(1);
             } while(buttonChoice != Button.ID_ESCAPE);
             System.exit(0);
@@ -218,7 +218,7 @@ public class Project {
 
             odo.start();
             DIS.start();
-            int buttonChoice = 0;
+            buttonChoice = 0;
             NAVI = new Navigation(0, new int[] {3,3}, new int[] {6,6});
             System.out.println("Press enter to continue");
             do {
@@ -229,3 +229,4 @@ public class Project {
             NAVI.demo();   
         }
     }
+}

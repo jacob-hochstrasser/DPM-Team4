@@ -79,7 +79,7 @@ public class Identifier {
      * Normalized mean RGB values of the four can colors (Blue, Green, Yellow, Red)
      */
     private static final float[][] LI_REFERENCE_MEANS = 
-        {{0.30571634f, 0.37456086f, 0.14368272f}, {0.24897166f, 0.36441293f, 0.04879648f}, {0.7362042f, 0.1472316f, 0.051636327f}, {0.84770095f, 0.07288859f, 0.026867064f}};
+        {{0.65751725f, 0.41026816f, 0.16526057f}, {0.580687f, 0.5011109f, 0.059106108f}, {0.98018533f, 0.14494759f, 0.048646368f, }, {0.9954798f, 0.07645622f, 0.03772367f}};
     /**
      * Standard deviation of RGB samples of four can colors
      */
@@ -135,7 +135,7 @@ public class Identifier {
     }
 
     public void idColor() {
-        this.setNumSamples(1);
+        this.setNumSamples(10);
         //this.isSampling = true;
         scanCan(false);
         computeMeans(samples, sampleMeans);
@@ -150,7 +150,7 @@ public class Identifier {
                 return;
             }
         }
-        normalize(sampleMeans);
+        //normalize(sampleMeans);
         int match = findMatch();
         lcd.clear();
         lcd.drawString(TARGET_COLOR.tcToString(match + 1), 0, 1);
@@ -169,7 +169,7 @@ public class Identifier {
         this.isSampling = true;
         scanCan(true);
         computeMeans(samples, sampleMeans);
-        normalize(sampleMeans);
+        //normalize(sampleMeans);
         
         int match = findMatch();
         
@@ -184,6 +184,33 @@ public class Identifier {
         } 
     }
 
+    //    private void scanCan(boolean sweep) {
+    //        if(sweep){
+    //            (new Thread() {
+    //                public void run() {
+    //                    scanner.rotate(180, false);
+    //                    scanner.rotate(-180, false);
+    //                }
+    //            }).start();
+    //            
+    //            for(int i = 0; i < samples.length; i++) {
+    //                idLSRGB.fetchSample(samples[i], 0);
+    //                try {
+    //                    // sampling rate depends on sample size
+    //                    Thread.sleep(1000/(samples.length/4));  
+    //                } catch(InterruptedException e) {
+    //                    e.printStackTrace();
+    //                } 
+    //            }
+    //        } else {
+    //            for(int i = 0; i < samples.length; i++) {
+    //                idLSRGB.fetchSample(samples[i], 0);
+    //            }
+    //        }
+    //        
+    //        filterData(samples);
+    //    }
+    
     private void scanCan(boolean sweep) {
         if(sweep){
             (new Thread() {
@@ -195,6 +222,7 @@ public class Identifier {
             
             for(int i = 0; i < samples.length; i++) {
                 idLSRGB.fetchSample(samples[i], 0);
+                normalize(samples[i]);
                 try {
                     // sampling rate depends on sample size
                     Thread.sleep(1000/(samples.length/4));  
@@ -210,6 +238,7 @@ public class Identifier {
         
         filterData(samples);
     }
+
 
     /**
      * Changes the number of samples taken during scanning

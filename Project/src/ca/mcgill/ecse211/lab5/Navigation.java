@@ -1082,8 +1082,6 @@ public class Navigation {
 	public void demo() {
 		localize();
 		moveToStart();
-		search();
-		
-		
+		search();	
 	}
 }
