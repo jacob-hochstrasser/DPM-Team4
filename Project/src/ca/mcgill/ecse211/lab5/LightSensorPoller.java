@@ -36,7 +36,7 @@ public class LightSensorPoller implements SensorPoller{
 		} else {
 			light = ((EV3ColorSensor)lightSensor).getRedMode();
 		}
-		Sound.beep();
+		try {Thread.sleep(500);} catch (InterruptedException e) {}
 	}
 	
 	/**
@@ -47,6 +47,9 @@ public class LightSensorPoller implements SensorPoller{
 	 */
 	@Override
 	public float getData(int MEASURING_SCOPE) {
+		if(MEASURING_SCOPE<=1) {
+			return getData();
+		}
 		float measure = 0;
 		for(int i = 0; i<MEASURING_SCOPE; i++) {
 			long Start = System.currentTimeMillis();

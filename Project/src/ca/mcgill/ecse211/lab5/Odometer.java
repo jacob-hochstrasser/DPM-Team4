@@ -26,7 +26,7 @@ public class Odometer extends Thread {
   //------<Important Constant>------//
   private final double TRACK;
   private final double RADIUS;
-  private static final long ODOMETER_PERIOD = 50; // odometer update period in ms
+  private static final long ODOMETER_PERIOD = 10; // odometer update period in ms
   
   //------<Counter>------//
   private int leftMotorTachoCount;
@@ -41,7 +41,7 @@ public class Odometer extends Thread {
 
   public Odometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor,
       final double RADIUS, final double TRACK) {
-    //Initialize the motors
+	//Initialize the motors
     this.leftMotor = leftMotor;
     this.rightMotor = rightMotor;
     
@@ -85,10 +85,10 @@ public class Odometer extends Thread {
       position[1]+=dY;
       position[2]+=dT;
       if(position[2]<0) {
-        position[2]+=360;
+    	position[2]+=360;
       }
       if(position[2]>=360) {
-        position[2]-=360;
+    	position[2]-=360;
       }
       
       updateEnd = System.currentTimeMillis();
@@ -108,7 +108,7 @@ public class Odometer extends Thread {
    * @return
    */
   public static double[] getPosition() {
-    return position;
+	return position;
   }
   
   /**

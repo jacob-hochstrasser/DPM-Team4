@@ -33,7 +33,6 @@ public class UltrasonicSensorPoller implements SensorPoller{
 		usPort = LocalEV3.get().getPort(port);
 		ultrasonicSensor = new EV3UltrasonicSensor(usPort);
 		ultrasonic = ultrasonicSensor.getMode("Distance");
-		Sound.beep();
 	}
 	
 	/**
