@@ -6,6 +6,7 @@ import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.robotics.SampleProvider;
+import java.util.Arrays;
 
 public class Identifier {
 
@@ -23,7 +24,7 @@ public class Identifier {
         Green, 
         Yellow, 
         Red;
-        
+
         public static String tcToString(int target) {
             String value;
             switch(target) {
@@ -45,7 +46,7 @@ public class Identifier {
             }
             return value;
         }
-        
+
         public static TARGET_COLOR decodeValue(int target) {
             TARGET_COLOR value;
             switch(target) {
@@ -72,15 +73,13 @@ public class Identifier {
      * The distance the robot stops from the can to start scanning it
      */
     public static final float SCANNING_DISTANCE = 5.0f;
-    
+
     /*<----------------------------------- Private ------------------------------------------------->*/
     /**
-     * Normalized mean RGB values of the four can colors
+     * Normalized mean RGB values of the four can colors (Blue, Green, Yellow, Red)
      */
-    private static final float[][] LI_REFERENCE_MEANS = {{0.35362998f, 0.2969332f, 0.10991809f}, 
-            {0.2804255f, 0.18570383f, 0.04182702f}, 
-            {0.71931106f, 0.11860263f, 0.03738072f}, 
-            {0.8550641f, 0.10356925f, 0.044857424f}};
+    private static final float[][] LI_REFERENCE_MEANS = 
+        {{0.30571634f, 0.37456086f, 0.14368272f}, {0.24897166f, 0.36441293f, 0.04879648f}, {0.7362042f, 0.1472316f, 0.051636327f}, {0.84770095f, 0.07288859f, 0.026867064f}};
     /**
      * Standard deviation of RGB samples of four can colors
      */
@@ -95,9 +94,9 @@ public class Identifier {
     /**
      * Scanning motor angular speed
      */
-    private static final int SPEED = 140;
-    
-    
+    private static final int SPEED = 90;
+
+
     /*<------------------------------------ Instance variables ------------------------------------->*/
     private final EV3MediumRegulatedMotor scanner;
     private final TARGET_COLOR target;
@@ -109,7 +108,7 @@ public class Identifier {
     private float [] sampleMeans = new float[3];
     private float [] sampleErrors = new float[3];
     private TextLCD lcd;
-    
+
     /**
      * Creates an Identifier object with the specified parameters
      * @param target - The target color {1 - Blue, 2 - Green, 3 - Yellow, 4 - Red}
@@ -129,110 +128,89 @@ public class Identifier {
         this.isSampling = false;
         samples = new float[numSamples][idLSRGB.sampleSize()];
         this.lcd = lcd;
-        
+
         scanner.setAcceleration(ACCELERATION);
         scanner.setSpeed(SPEED);
-        
+
     }
-    
+
     public void idColor() {
-        scanCan();
-        //        idLSRGB.fetchSample(samples[0], 0);
-        //        normalize(samples[0]);
-        //        for(int i = 0; i < 3; i++) {
-        //            if(within2SDS(samples[0], LI_REFERENCE_MEANS[i], LI_REFERENCE_SDS[i])){
-        //                lcd.drawString("Object detected", 0, 0);
-        //                lcd.drawString(TARGET_COLOR.tcToString(i), 0, 2);
-        //                break;
-        //            }
-        //        }
+        this.setNumSamples(1);
+        //this.isSampling = true;
+        scanCan(false);
+        computeMeans(samples, sampleMeans);
+        for(float f : sampleMeans) {
+            if(f < .0001) {
+                lcd.clear();
+                try {
+                    Thread.sleep(100);
+                } catch(InterruptedException e) {
+                    
+                }
+                return;
+            }
+        }
+        normalize(sampleMeans);
+        int match = findMatch();
+        lcd.clear();
+        lcd.drawString(TARGET_COLOR.tcToString(match + 1), 0, 1);
         try {
-            Thread.sleep(1000);
+            Thread.sleep(100);
         } catch(InterruptedException e) {
             
         }
-        
-        //        for(float f : samples[0]) {
-        //            System.out.print(f + ", ");
-        //        }
-        //        System.out.print("\n");
-        //        for(float f : sampleErrors) {
-        //            System.out.print(f + ", ");
-        //        }
-        //        System.out.print("\n");
-        //        try {
-        //            Thread.sleep(2000);
-        //        } catch(InterruptedException e) {
-        //        }
-        //        
-        //        for(int i=1; i < LI_REFERENCE_MEANS.length; i++) {
-        //            if((Math.abs(sampleErrors[0]) < 2 * LI_REFERENCE_SDS[i][0]) && (Math.abs(sampleErrors[1]) < 2 * LI_REFERENCE_SDS[i][1]) && (Math.abs(sampleErrors[2]) < 2 * LI_REFERENCE_SDS[i][2])) {
-        //                lcd.drawString("Object found", 0, 0);
-        //                lcd.drawString(TARGET_COLOR.tcToString(i), 0, 2);
-        //            } else {
-        //                lcd.clear();
-        //            }
-        //        }
     }
     /**
      * Scans the current can a determines if it is the target can or not
      * @return boolean representing whether a target was found
      */
     public boolean isTargetCan() {
-        //        lcd.drawString("Object found", 0, 0);
-        //        this.isSampling = true;
-        scanCan();
+        this.setNumSamples(1000);
+        this.isSampling = true;
+        scanCan(true);
         computeMeans(samples, sampleMeans);
-        lcd.drawString(sampleMeans[0] + ", " + sampleMeans[1] + ", " + sampleMeans[2], 0, 4);
+        normalize(sampleMeans);
         
-        //computeErrors(sampleMeans, sampleErrors, targetInt);
-        //        if((Math.abs(sampleErrors[0]) < 2 * LI_REFERENCE_SDS[targetInt][0]) && (Math.abs(sampleErrors[1]) < 2 * LI_REFERENCE_SDS[targetInt][1]) && (Math.abs(sampleErrors[2]) < 2 * LI_REFERENCE_SDS[targetInt][2])) {
-        //            lcd.drawString(TARGET_COLOR.tcToString(targetInt), 0, 1);
-        //            LocalEV3.get().getAudio().systemSound(0);
-        //            try {
-        //                Thread.sleep(2000);
-        //            } catch(InterruptedException e) {
-        //                e.printStackTrace();
-        //            }
-        //            this.isSampling = false;
-        //            return true; 
-        //        } else {
-        //            for(int i=1; i < LI_REFERENCE_MEANS.length; i++) {
-        //                if(i != targetInt) {
-        //                    if((Math.abs(sampleErrors[0]) < 2 * LI_REFERENCE_SDS[i][0]) && (Math.abs(sampleErrors[1]) < 2 * LI_REFERENCE_SDS[i][1]) && (Math.abs(sampleErrors[2]) < 2 * LI_REFERENCE_SDS[i][2])) {
-        //                        lcd.drawString(TARGET_COLOR.tcToString(i), 0, 1);
-        //                    }
-        //                }
-        //            }
-        //            LocalEV3.get().getAudio().systemSound(1);
-        //            try {
-        //                Thread.sleep(2000);
-        //            } catch(InterruptedException e) {
-        //                e.printStackTrace();
-        //            }
-        //            this.isSampling = false;
-        //            return false;
-        //        }
+        int match = findMatch();
+        
+        if((match + 1) == targetInt) {
+            LocalEV3.get().getAudio().systemSound(0);
+            this.isSampling = false;
+            return true;
+        } else {
+            LocalEV3.get().getAudio().systemSound(1);
+            this.isSampling = false;
+            return false;
+        } 
     }
 
-    private void scanCan() {
-        (new Thread() {
-            public void run() {
-                scanner.rotate(180, false);
-                scanner.rotate(-180, false);
+    private void scanCan(boolean sweep) {
+        if(sweep){
+            (new Thread() {
+                public void run() {
+                    scanner.rotate(180, false);
+                    scanner.rotate(-180, false);
+                }
+            }).start();
+            
+            for(int i = 0; i < samples.length; i++) {
+                idLSRGB.fetchSample(samples[i], 0);
+                try {
+                    // sampling rate depends on sample size
+                    Thread.sleep(1000/(samples.length/4));  
+                } catch(InterruptedException e) {
+                    e.printStackTrace();
+                } 
             }
-        }).start();
-        for(int i = 0; i < samples.length; i++) {
-            idLSRGB.fetchSample(samples[i], 0);
-            try {
-                // sampling rate depends on sample size
-                Thread.sleep(40);  
-            } catch(InterruptedException e) {
-                e.printStackTrace();
-            } 
+        } else {
+            for(int i = 0; i < samples.length; i++) {
+                idLSRGB.fetchSample(samples[i], 0);
+            }
         }
+        
+        filterData(samples);
     }
-    
+
     /**
      * Changes the number of samples taken during scanning
      * @param newNumSamples
@@ -244,62 +222,86 @@ public class Identifier {
         }
     }
     
-    public void myMethod() {
-        for(int i=0; i< samples.length; i++) {
-            idLSRGB.fetchSample(samples[i], 0);
-            try {
-                Thread.sleep(40);  
-            } catch(InterruptedException e) {
-                e.printStackTrace();
+    private int findMatch() {
+        float[] errors = new float[LI_REFERENCE_MEANS.length];
+        for(int i = 0; i < errors.length; i++) {
+            errors[i] = computeEuclidianDistance(sampleMeans, LI_REFERENCE_MEANS[i]);
+        }
+        float temp = 10000;
+        int j = 0;
+        for(int i = 0; i < errors.length; i++) {
+            if(errors[i] < temp) {
+                temp = errors[i];
+                j = i;
             } 
         }
-        
-        
+        return j;
+    }
+
+    public void computeReferences() {
+        scanCan(true);
+        computeMeans(samples, sampleMeans);
+        normalize(sampleMeans);
+        System.out.print("{");
+        for(float f : sampleMeans) {
+            System.out.print(f + "f, ");
+        }
+        System.out.println("}");
     }
     
-    public static void computeMeans(float[][] samples, float[] means) {
+    private static void filterData(float[][] samples) {
+        for(int i = 0; i < samples.length; i++) {
+            for(int j = 1; j < samples[i].length; j++) {
+                if((samples[i][j]) > 0.6) {
+                    samples[i][j] = (float)Math.min(samples[i][j-1], 0.6);
+                }
+            }
+        }
+    }
+
+    private static void computeMeans(float[][] samples, float[] means) {
         float sumR = 0, sumG = 0, sumB = 0;
         for(float[] f : samples) {
             sumR += f[0];
             sumG += f[1];
             sumB += f[2];
         }
-        
+
         float meanR = sumR/(float)samples.length;
         float meanG = sumG/(float)samples.length;
         float meanB = sumB/(float)samples.length;
-        
+
         means[0] = meanR;
         means[1] = meanG;
         means[2] = meanB;
     }
-    
-    public static void normalize(float[] data) {
+
+    private static void normalize(float[] data) {
         data[0] = (float) (data[0]/Math.sqrt(Math.pow(data[0], 2) + Math.pow(data[1], 2) + Math.pow(data[2], 2)));
         data[1] = (float) (data[1]/Math.sqrt(Math.pow(data[0], 2) + Math.pow(data[1], 2) + Math.pow(data[2], 2)));
         data[2] = (float) (data[2]/Math.sqrt(Math.pow(data[0], 2) + Math.pow(data[1], 2) + Math.pow(data[2], 2)));
     }
-    
+
     private static void computeErrors(float[] data, float[] errors, int index) {
         errors[0] = data[0] - LI_REFERENCE_MEANS[index][0];
         errors[1] = data[1] - LI_REFERENCE_MEANS[index][1];
         errors[2] = data[2] - LI_REFERENCE_MEANS[index][2];
-        
+
     }
-    
-    public static void computeStdDev(float[][] samples, float[] means, float [] sds) {
+
+    private static void computeStdDev(float[][] samples, float[] means, float [] sds) {
         float intermR = 0, intermG = 0, intermB = 0;
         for(float[] f : samples) {
             intermR += (Math.pow(f[0] - means[0], 2));
             intermG += (Math.pow(f[1] - means[1], 2));
             intermB += (Math.pow(f[2] - means[2], 2));
         }
-        
+
         sds[0] = (float)Math.sqrt(intermR/(samples.length-1));
         sds[1] = (float)Math.sqrt(intermG/(samples.length-1));
         sds[2] = (float)Math.sqrt(intermB/(samples.length-1));  
     }
-    
+
     private static boolean within2SDS(float[] data, float[] ref, float[] sds) {
         float[] result = new float[3];
         result[0] = data[0] - ref[0];
@@ -311,7 +313,7 @@ public class Identifier {
             return false;
         }
     }
-    
+
     private static float computeEuclidianDistance(float[] data, float[] ref) {
         float[] resultArray = new float[3];
         resultArray[0] = (float)Math.pow(data[0] - ref[0], 2);

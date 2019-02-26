@@ -35,11 +35,11 @@ public class Project {
     /**
      * Static variable for left motor
      */
-//    private static final EV3LargeRegulatedMotor LEFT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
-//    /**
-//     * Static variable for right motor
-//     */
-//    private static final EV3LargeRegulatedMotor RIGHT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+    //    private static final EV3LargeRegulatedMotor LEFT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("B"));
+    //    /**
+    //     * Static variable for right motor
+    //     */
+    //    private static final EV3LargeRegulatedMotor RIGHT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
     /**
      * Static variable for scanning motor
      */
@@ -51,11 +51,11 @@ public class Project {
     /**
      * Static variable for right localizing light sensor poller
 //     */
-//    private static final SensorPoller LOCALIZING_RIGHT = new LightSensorPoller("S4", LOCALIZING_INTERVAL_LIGHT, false);
-//    /**
-//     * Static variable for ultrasonic sensor poller
-//     */
-//    private static final SensorPoller ULTRASONIC = new UltrasonicSensorPoller("S2", LOCALIZING_INTERVAL_ULTRASONIC);
+    //    private static final SensorPoller LOCALIZING_RIGHT = new LightSensorPoller("S4", LOCALIZING_INTERVAL_LIGHT, false);
+    //    /**
+    //     * Static variable for ultrasonic sensor poller
+    //     */
+    //    private static final SensorPoller ULTRASONIC = new UltrasonicSensorPoller("S2", LOCALIZING_INTERVAL_ULTRASONIC);
     /**
      * Static variable for LCD display of brick
      */
@@ -74,7 +74,7 @@ public class Project {
      * @param args
      */
     public static void main(String[] args) {
-        
+
         int buttonChoice; // integer to track which button was pressed
 
         /*--- Setting up the identifying sensor ---*/
@@ -84,142 +84,21 @@ public class Project {
 
         /*--- Variables to store the parameters specified in the Lab 5 instructions ---*/
         /*--- Starting corner -> [0,3] Target color -> {1 - Blue, 2 - Green, 3 - Yellow, 4 - Red} Lower left of search corner -> ([0,8], [0,8]) Upper right of search corner -> ([0,8], [0,8]) ---*/
-        int mode = 1, startingCorner = 0, targetColor = 1;
+        int mode = 0, startingCorner = 0, targetColor = 1;
         int[] ll = new int[2];
         int[] ur = new int[2];
-        //        float[] temp = new float[idLSRGB.sampleSize()];
-        //        while(Button.waitForAnyPress(1) != Button.ID_ESCAPE) {
-        //            idLSRGB.fetchSample(temp, 0);
-        //            System.out.println(temp[0] + "," + temp[1] + "," + temp[2]);
-        //            LCD.clear();
-        //        }
-        //        
-        //                while(Button.waitForAnyPress() != Button.ID_ENTER);
-        SCANNER.setAcceleration(1000);
-        SCANNER.setSpeed(90);
-        float[][] temp = new float[100][3];
-        float[] means = new float[3];
-        float[] sds = new float[3];
-        (new Thread() {
-            public void run() {
-                SCANNER.rotate(180, false);
-                SCANNER.rotate(-180, false);
-            }
-        }).start();
-        for(int i = 0; i < temp.length; i++) {
-            idLSRGB.fetchSample(temp[i], 0);
-            try {
-                // sampling rate depends on sample size
-                Thread.sleep(40);  
-            } catch(InterruptedException e) {
-                e.printStackTrace();
-            } 
-        }
 
-        Identifier.computeMeans(temp, means);
-        Identifier.normalize(means);
-        Identifier.computeStdDev(temp, means, sds);
-        //Identifier.normalize(sds);
-                System.out.print("{");
-                for(float f : means) {
-                    System.out.print(f + "f, ");
-                }
-                System.out.print("}\n");
-                System.out.print("{");
-                for(float f : sds) {
-                    System.out.print(f + "f, ");
-                }
-                System.out.println("}");
-        //        for(float[] f: temp) {
-        //            System.out.println(f[0] + "," + f[1] + "," + f[2]);
-        //        }
-        //System.exit(0);
 
-        /*--- Pick mode (1 - Color id, 2 - Field test) ---*/
+        /*--- Pick mode (0 - Data collection, 1 - Color id, 2 - Field test, 3 - Debug) ---*/
         do {
             LCD.clear();
             LCD.drawString("Mode: ", (LCD.getTextWidth()/2)-3, 0);
             LCD.drawString("< " + mode + " >", (LCD.getTextWidth()/2)-3, 2);
             buttonChoice = Button.waitForAnyPress();
-            if(buttonChoice == Button.ID_LEFT && mode > 1) {
+            if(buttonChoice == Button.ID_LEFT && mode > 0) {
                 mode--;
-            } else if(buttonChoice == Button.ID_RIGHT && mode < 2) {
+            } else if(buttonChoice == Button.ID_RIGHT && mode < 3) {
                 mode++;
-            } else if(buttonChoice == Button.ID_ESCAPE) {
-                System.exit(0);
-            }
-        } while(buttonChoice != Button.ID_ENTER);
-
-        /*--- Pick the starting corner ---*/
-        do {
-            LCD.clear();
-            LCD.drawString("Starting corner: ", (LCD.getTextWidth()/2) - 8, 0);
-            LCD.drawString("< " + startingCorner + " >" , (LCD.getTextWidth()/2) - 3, 2);
-            buttonChoice = Button.waitForAnyPress();  
-            if(buttonChoice == Button.ID_LEFT && startingCorner > 0) {
-                startingCorner--;
-            } else if(buttonChoice == Button.ID_RIGHT && startingCorner < 3){
-                startingCorner++;
-            } else if(buttonChoice == Button.ID_ESCAPE) {
-                System.exit(0);
-            }
-        } while(buttonChoice != Button.ID_ENTER);
-
-        /*--- Pick lower left x ---*/
-        do {
-            LCD.clear();
-            LCD.drawString("Lower Left X: ", (LCD.getTextWidth()/2) - 8, 0);
-            LCD.drawString("< " + ll[0] + " >", (LCD.getTextWidth()/2) - 3, 2);
-            buttonChoice = Button.waitForAnyPress();
-            if(buttonChoice == Button.ID_LEFT && ll[0] > 0) {
-                ll[0]--;
-            } else if(buttonChoice == Button.ID_RIGHT && ll[0] < 8) {
-                ll[0]++;
-            } else if(buttonChoice == Button.ID_ESCAPE) {
-                System.exit(0);
-            }
-        } while(buttonChoice != Button.ID_ENTER);
-
-        /*--- Pick lower left y ---*/
-        do {
-            LCD.clear();
-            LCD.drawString("Lower Left Y: ", (LCD.getTextWidth()/2) - 8, 0);
-            LCD.drawString("< " + ll[1] + " >", (LCD.getTextWidth()/2) - 3, 2);
-            buttonChoice = Button.waitForAnyPress();
-            if(buttonChoice == Button.ID_LEFT && ll[1] > 0) {
-                ll[1]--;
-            } else if(buttonChoice == Button.ID_RIGHT && ll[1] < 8) {
-                ll[1]++;
-            } else if(buttonChoice == Button.ID_ESCAPE) {
-                System.exit(0);
-            }
-        } while(buttonChoice != Button.ID_ENTER);
-
-        /*--- Pick upper right x ---*/
-        do {
-            LCD.clear();
-            LCD.drawString("Upper Right X: ", (LCD.getTextWidth()/2) - 8, 0);
-            LCD.drawString("< " + ur[0] + " >", (LCD.getTextWidth()/2) - 3, 2);
-            buttonChoice = Button.waitForAnyPress();
-            if(buttonChoice == Button.ID_LEFT && ur[0] > 0) {
-                ur[0]--;
-            } else if(buttonChoice == Button.ID_RIGHT && ur[0] < 8) {
-                ur[0]++;
-            } else if(buttonChoice == Button.ID_ESCAPE) {
-                System.exit(0);
-            }
-        } while(buttonChoice != Button.ID_ENTER);
-
-        /*--- Pick upper right y ---*/
-        do {
-            LCD.clear();
-            LCD.drawString("Upper Right Y: ", (LCD.getTextWidth()/2) - 8, 0);
-            LCD.drawString("< " + ur[1] + " >", (LCD.getTextWidth()/2) - 3, 2);
-            buttonChoice = Button.waitForAnyPress();
-            if(buttonChoice == Button.ID_LEFT && ur[1] > 0) {
-                ur[1]--;
-            } else if(buttonChoice == Button.ID_RIGHT && ur[1] < 8) {
-                ur[1]++;
             } else if(buttonChoice == Button.ID_ESCAPE) {
                 System.exit(0);
             }
@@ -239,19 +118,103 @@ public class Project {
                 System.exit(0);
             }
         } while(buttonChoice != Button.ID_ENTER);
-        
-        Identifier identifier = new Identifier(SCANNER, targetColor, idLSRGB, 100, LCD);
-        if(mode == 1) {
+        LCD.clear();
+        Identifier identifier = new Identifier(SCANNER, targetColor, idLSRGB, 1000, LCD);
+        if(mode == 0) {
+            LCD.drawString("Press enter", (LCD.getTextWidth()/2) - 5, 0);
+            LCD.drawString("to scan", (LCD.getTextWidth()/2) - 3, 1);
             do {
-                LCD.clear();
-                //if(ULTRASONIC.getData() < Identifier.SCANNING_DISTANCE) {
-                identifier.isTargetCan();
-                //}
-                //LCD.drawString("" + ULTRASONIC.getData(), 0, 4);
-                buttonChoice = Button.waitForAnyPress(10);
+                buttonChoice = Button.waitForAnyPress(1);
+                if(buttonChoice == Button.ID_ENTER) {
+                    LCD.clear();
+                    identifier.computeReferences();
+                }
             } while(buttonChoice != Button.ID_ESCAPE);
             System.exit(0);
-        } else {
+        } else if(mode == 1) {
+            LCD.clear();
+            do {
+                identifier.idColor();
+                buttonChoice = Button.waitForAnyPress(1);
+            } while(buttonChoice != Button.ID_ESCAPE);
+            System.exit(0);
+        } else if (mode == 2) {
+
+            /*--- Pick the starting corner ---*/
+            do {
+                LCD.clear();
+                LCD.drawString("Starting corner: ", (LCD.getTextWidth()/2) - 8, 0);
+                LCD.drawString("< " + startingCorner + " >" , (LCD.getTextWidth()/2) - 3, 2);
+                buttonChoice = Button.waitForAnyPress();  
+                if(buttonChoice == Button.ID_LEFT && startingCorner > 0) {
+                    startingCorner--;
+                } else if(buttonChoice == Button.ID_RIGHT && startingCorner < 3){
+                    startingCorner++;
+                } else if(buttonChoice == Button.ID_ESCAPE) {
+                    System.exit(0);
+                }
+            } while(buttonChoice != Button.ID_ENTER);
+
+            /*--- Pick lower left x ---*/
+            do {
+                LCD.clear();
+                LCD.drawString("Lower Left X: ", (LCD.getTextWidth()/2) - 8, 0);
+                LCD.drawString("< " + ll[0] + " >", (LCD.getTextWidth()/2) - 3, 2);
+                buttonChoice = Button.waitForAnyPress();
+                if(buttonChoice == Button.ID_LEFT && ll[0] > 0) {
+                    ll[0]--;
+                } else if(buttonChoice == Button.ID_RIGHT && ll[0] < 8) {
+                    ll[0]++;
+                } else if(buttonChoice == Button.ID_ESCAPE) {
+                    System.exit(0);
+                }
+            } while(buttonChoice != Button.ID_ENTER);
+
+            /*--- Pick lower left y ---*/
+            do {
+                LCD.clear();
+                LCD.drawString("Lower Left Y: ", (LCD.getTextWidth()/2) - 8, 0);
+                LCD.drawString("< " + ll[1] + " >", (LCD.getTextWidth()/2) - 3, 2);
+                buttonChoice = Button.waitForAnyPress();
+                if(buttonChoice == Button.ID_LEFT && ll[1] > 0) {
+                    ll[1]--;
+                } else if(buttonChoice == Button.ID_RIGHT && ll[1] < 8) {
+                    ll[1]++;
+                } else if(buttonChoice == Button.ID_ESCAPE) {
+                    System.exit(0);
+                }
+            } while(buttonChoice != Button.ID_ENTER);
+
+            /*--- Pick upper right x ---*/
+            do {
+                LCD.clear();
+                LCD.drawString("Upper Right X: ", (LCD.getTextWidth()/2) - 8, 0);
+                LCD.drawString("< " + ur[0] + " >", (LCD.getTextWidth()/2) - 3, 2);
+                buttonChoice = Button.waitForAnyPress();
+                if(buttonChoice == Button.ID_LEFT && ur[0] > 0) {
+                    ur[0]--;
+                } else if(buttonChoice == Button.ID_RIGHT && ur[0] < 8) {
+                    ur[0]++;
+                } else if(buttonChoice == Button.ID_ESCAPE) {
+                    System.exit(0);
+                }
+            } while(buttonChoice != Button.ID_ENTER);
+
+            /*--- Pick upper right y ---*/
+            do {
+                LCD.clear();
+                LCD.drawString("Upper Right Y: ", (LCD.getTextWidth()/2) - 8, 0);
+                LCD.drawString("< " + ur[1] + " >", (LCD.getTextWidth()/2) - 3, 2);
+                buttonChoice = Button.waitForAnyPress();
+                if(buttonChoice == Button.ID_LEFT && ur[1] > 0) {
+                    ur[1]--;
+                } else if(buttonChoice == Button.ID_RIGHT && ur[1] < 8) {
+                    ur[1]++;
+                } else if(buttonChoice == Button.ID_ESCAPE) {
+                    System.exit(0);
+                }
+            } while(buttonChoice != Button.ID_ENTER);
+
             do {
                 buttonChoice = Button.waitForAnyPress(10);
                 if(buttonChoice == Button.ID_ENTER) {
@@ -259,14 +222,22 @@ public class Project {
                 }
             } while(buttonChoice != Button.ID_ESCAPE);
             System.exit(0);
+        } else {
+            float[] sample = new float[idLSRGB.sampleSize()];
+            do {
+                idLSRGB.fetchSample(sample, 0);
+                for(float f : sample) {
+                    System.out.print(f + ", ");
+                }
+                System.out.println();
+                buttonChoice = Button.waitForAnyPress(1);
+                if(buttonChoice == Button.ID_ENTER) {
+                    Button.waitForAnyPress();
+                }
+            } while(buttonChoice != Button.ID_ESCAPE);
         }
-
         //        NAVI = new Navigation(LEFT_MOTOR, RIGHT_MOTOR, LOCALIZING_LEFT, LOCALIZING_RIGHT, ULTRASONIC, 1, TRACK, RADIUS);
         //        NAVI.demo();
-
-        while (Button.waitForAnyPress() != Button.ID_ESCAPE);
         System.exit(0);
     }
-
-
 }
