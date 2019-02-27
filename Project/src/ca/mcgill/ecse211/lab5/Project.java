@@ -239,7 +239,8 @@ public class Project {
             DIS.start();
             buttonChoice = 0;
             NAVI = new Navigation(0, ll, ur);
-            System.out.println("Press enter to continue");
+            LCD.drawString("Press enter to", (LCD.getTextWidth()/2) - 7, 0);
+            LCD.drawString("continue", (LCD.getTextWidth())/2 - 4, 1);
             do {
                 buttonChoice = Button.waitForAnyPress();
             } while(buttonChoice != Button.ID_ENTER);
@@ -250,14 +251,50 @@ public class Project {
             float[] sample = new float[IDLSRGB.sampleSize()];
             do {
                 IDLSRGB.fetchSample(sample, 0);
+                for(float f : sample) {
+                    System.out.print(f + ", ");
+                }
+                System.out.println();
                 Identifier.normalize(sample);
                 for(float f : sample) {
                     System.out.print(f + ", ");
                 }
                 System.out.println();
+                System.out.println();
                 buttonChoice = Button.waitForAnyPress(1);
                 if(buttonChoice == Button.ID_ENTER) {
+                    buttonChoice = 0;
                     Button.waitForAnyPress();
+                } else if (buttonChoice == Button.ID_RIGHT) {
+                    buttonChoice = 0;
+                    (new Thread() {
+                        public void run() {
+                            SCANNER.setAcceleration(1000);
+                            SCANNER.setSpeed(90);
+                            SCANNER.rotate(180, false);
+                            SCANNER.rotate(-180, false);
+                            SCANNER.flt();
+                        }
+                    }).start();
+                    for(int i = 0; i < 360; i++) {
+                        IDLSRGB.fetchSample(sample, 0);
+                        for(float f : sample) {
+                            System.out.print(f + ", ");
+                        }
+                        System.out.println();
+                        Identifier.normalize(sample);
+                        for(float f : sample) {
+                            System.out.print(f + ", ");
+                        }
+                        System.out.println();
+                        System.out.println();
+                        try {
+                            Thread.sleep(11);  
+                        } catch(InterruptedException e) {
+                            e.printStackTrace();
+                        } 
+                    }
+                    //Button.waitForAnyPress();
                 }
             } while(buttonChoice != Button.ID_ESCAPE);
         }
