@@ -26,6 +26,7 @@ public class Navigation {
 	private final double NOTICE_MARGIN = 1;
 	private final double ROTATION_ERROR_CW = 30;
 	private final double ROTATION_ERROR_CCW = 15;
+	private boolean isFound = false;
 	private double TRACK = Project.TRACK;
 	private double RADIUS = Project.RADIUS;
 	private float BLACK_LINE_LEFT;
@@ -814,6 +815,16 @@ public class Navigation {
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 	}
 	
+	private void canMoving() {
+	    Project.SCANNER.setSpeed(1000);
+	    Project.SCANNER.setAcceleration(1000);
+	    Project.SCANNER.rotate(180, false);
+	    Project.SCANNER.setSpeed(100);
+	    Project.SCANNER.setAcceleration(500);
+	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+        Project.SCANNER.rotate(-180, false);
+	}
+	
 	private void travelTo(int x, int y) {
 		LEFT_MOTOR.setSpeed(SEARCHING_SPEED);
     	RIGHT_MOTOR.setSpeed(SEARCHING_SPEED);
@@ -828,7 +839,7 @@ public class Navigation {
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 			LEFT_MOTOR.rotate(convertDistance((y-currPos[1])), true);
 		    RIGHT_MOTOR.rotate(convertDistance((y-currPos[1])), false);
-		    do{
+		    do{ 
 		    	double distance = ULTRASONIC.getData();
 		    	if(distance<=5) {
 		    		stop();
@@ -842,11 +853,16 @@ public class Navigation {
 		    	    RIGHT_MOTOR.rotate(convertDistance(5), false);
 		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    //Detecting
-		    	    Sound.twoBeeps();
+		    	    isFound = Project.IDENTIFIER.isTargetCan();
+		    	    if(isFound) {break;}
+                    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+		    	    //Sound.twoBeeps();
 		    	    LEFT_MOTOR.rotate(-convertDistance(5), true);
 		    	    RIGHT_MOTOR.rotate(-convertDistance(5), false);
 		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    //Hitting
+		    	    canMoving();
+		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    LEFT_MOTOR.rotate(convertDistance((y-currPos[1])), true);
 		    	    RIGHT_MOTOR.rotate(convertDistance((y-currPos[1])), false);
 		    	}
@@ -870,11 +886,16 @@ public class Navigation {
 		    	    RIGHT_MOTOR.rotate(convertDistance(5), false);
 		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    //Detecting
-		    	    Sound.twoBeeps();
+		    	    isFound = Project.IDENTIFIER.isTargetCan();
+		    	    if(isFound) {break;}
+                    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+		    	    //Sound.twoBeeps();
 		    	    LEFT_MOTOR.rotate(-convertDistance(5), true);
 		    	    RIGHT_MOTOR.rotate(-convertDistance(5), false);
 		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    //Hitting
+		    	    canMoving();
+                    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    currPos = Odometer.getPosition();
 		    	    LEFT_MOTOR.rotate(convertDistance((currPos[1]-y)), true);
 		    	    RIGHT_MOTOR.rotate(convertDistance((currPos[1]-y)), false);
@@ -902,11 +923,16 @@ public class Navigation {
 		    	    RIGHT_MOTOR.rotate(convertDistance(5), false);
 		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    //Detecting
-		    	    Sound.twoBeeps();
+		    	    isFound = Project.IDENTIFIER.isTargetCan();
+		    	    if(isFound) {break;}
+                    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+		    	    //Sound.twoBeeps();
 		    	    LEFT_MOTOR.rotate(-convertDistance(5), true);
 		    	    RIGHT_MOTOR.rotate(-convertDistance(5), false);
 		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    //Hitting
+		    	    canMoving();
+                    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    currPos = Odometer.getPosition();
 		    	    LEFT_MOTOR.rotate(convertDistance((x-currPos[0])), true);
 		    	    RIGHT_MOTOR.rotate(convertDistance((x-currPos[0])), false);
@@ -930,18 +956,25 @@ public class Navigation {
 		    	    RIGHT_MOTOR.rotate(convertDistance(5), false);
 		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    //Detecting
-		    	    Sound.twoBeeps();
+		    	    isFound = Project.IDENTIFIER.isTargetCan();
+		    	    if(isFound) {break;}
+		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+		    	    //Sound.twoBeeps();
 		    	    LEFT_MOTOR.rotate(-convertDistance(5), true);
 		    	    RIGHT_MOTOR.rotate(-convertDistance(5), false);
 		    	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    //Hitting
+		    	    canMoving();
+                    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 		    	    currPos = Odometer.getPosition();
 		    	    LEFT_MOTOR.rotate(convertDistance((currPos[0]-x)), true);
 		    	    RIGHT_MOTOR.rotate(convertDistance((currPos[0]-x)), false);
 		    	}
 		    } while(LEFT_MOTOR.isMoving()&&RIGHT_MOTOR.isMoving());
 		}
-		
+		if(isFound) {
+		    travelTo(UR[0],UR[1]);
+		}
 	}
 	
 	private int[][] calculateNavigationPoint(){
@@ -1079,7 +1112,7 @@ public class Navigation {
 	/**
 	 * Unit test function
 	 */
-	public void demo() {
+	public void showTime() {
 		localize();
 		moveToStart();
 		search();	

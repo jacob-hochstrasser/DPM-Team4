@@ -43,7 +43,7 @@ public class Project {
     /**
      * Static variable for scanning motor
      */
-    private static final EV3MediumRegulatedMotor SCANNER = new EV3MediumRegulatedMotor(LocalEV3.get().getPort("C"));
+    static final EV3MediumRegulatedMotor SCANNER = new EV3MediumRegulatedMotor(LocalEV3.get().getPort("C"));
     /**
      * Static variable for left localizing light sensor poller
      */
@@ -79,7 +79,7 @@ public class Project {
     private static final Display DIS = new Display(LCD);
 
     //-----<Identifier>-----//
-    private static Identifier IDENTIFIER;
+    static Identifier IDENTIFIER;
 
 
     public static void main(String[] args) {
@@ -91,6 +91,7 @@ public class Project {
         int mode = 0, startingCorner = 0, targetColor = 1;
         int[] ll = new int[2];
         int[] ur = new int[2];
+        boolean checkTarget = false;
 
         /*--- Pick mode (0 - Data collection, 1 - Color id, 2 - Field test, 3 - Debug) ---*/
         do {
@@ -122,13 +123,31 @@ public class Project {
         LCD.clear();
         IDENTIFIER = new Identifier(SCANNER, targetColor, IDLSRGB, 1000, LCD);
         if(mode == 0) {
+            do {
+                LCD.clear();
+                LCD.drawString("Sweep: ", (LCD.getTextWidth()/2)-3, 0);
+                LCD.drawString("< " + checkTarget + " >", (LCD.getTextWidth()/2)-3, 2);
+                buttonChoice = Button.waitForAnyPress();
+                if(buttonChoice == Button.ID_LEFT) {
+                    checkTarget = false;
+                } else if(buttonChoice == Button.ID_RIGHT) {
+                    checkTarget = true;
+                } else if(buttonChoice == Button.ID_ESCAPE) {
+                    System.exit(0);
+                }
+            } while(buttonChoice != Button.ID_ENTER);
+            
             LCD.drawString("Press enter", (LCD.getTextWidth()/2) - 5, 0);
             LCD.drawString("to scan", (LCD.getTextWidth()/2) - 3, 1);
             do {
                 buttonChoice = Button.waitForAnyPress(1);
                 if(buttonChoice == Button.ID_ENTER) {
                     LCD.clear();
-                    IDENTIFIER.computeReferences();
+                    if(!checkTarget) {
+                        IDENTIFIER.computeReferences();
+                    } else {
+                        IDENTIFIER.isTargetCan();
+                    }
                 }
             } while(buttonChoice != Button.ID_ESCAPE);
             System.exit(0);
@@ -219,14 +238,29 @@ public class Project {
             odo.start();
             DIS.start();
             buttonChoice = 0;
-            NAVI = new Navigation(0, new int[] {3,3}, new int[] {6,6});
+            NAVI = new Navigation(0, ll, ur);
             System.out.println("Press enter to continue");
             do {
                 buttonChoice = Button.waitForAnyPress();
             } while(buttonChoice != Button.ID_ENTER);
             Sound.beep();
             LCD.clear();
-            NAVI.demo();   
+            NAVI.showTime();   
+        } else {
+            float[] sample = new float[IDLSRGB.sampleSize()];
+            do {
+                IDLSRGB.fetchSample(sample, 0);
+                Identifier.normalize(sample);
+                for(float f : sample) {
+                    System.out.print(f + ", ");
+                }
+                System.out.println();
+                buttonChoice = Button.waitForAnyPress(1);
+                if(buttonChoice == Button.ID_ENTER) {
+                    Button.waitForAnyPress();
+                }
+            } while(buttonChoice != Button.ID_ESCAPE);
         }
+        System.exit(0);
     }
 }

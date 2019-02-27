@@ -78,15 +78,15 @@ public class Identifier {
     /**
      * Normalized mean RGB values of the four can colors (Blue, Green, Yellow, Red)
      */
-    private static final float[][] LI_REFERENCE_MEANS = 
+    private static final float[][] LI_REFERENCE_MEANS =
         {{0.65751725f, 0.41026816f, 0.16526057f}, {0.580687f, 0.5011109f, 0.059106108f}, {0.98018533f, 0.14494759f, 0.048646368f, }, {0.9954798f, 0.07645622f, 0.03772367f}};
+    //{{0.77636355f, 0.24801674f, 0.11337073f}, {0.8811594f, 0.16494441f, 0.037350662f}, {0.9982558f, 0.047910664f, 0.012949564f, }, {0.9998673f, 0.01394218f, 0.007550113f}};
+
     /**
      * Standard deviation of RGB samples of four can colors
      */
-    private static final float[][] LI_REFERENCE_SDS = {{0.031516474f, 0.038391143f, 0.01112207f}, 
-            {0.010355728f, 0.025849136f, 0.010378962f}, 
-            {0.02544661f, 0.018257428f, 0.012972444f}, 
-            {0.06890812f, 0.04407912f, 0.017151868f}};
+    private static final float[][] LI_REFERENCE_SDS = 
+        {{0.031516474f, 0.038391143f, 0.01112207f}, {0.010355728f, 0.025849136f, 0.010378962f}, {0.02544661f, 0.018257428f, 0.012972444f}, {0.06890812f, 0.04407912f, 0.017151868f}};
     /**
      * Scanning motor angular acceleration
      */
@@ -140,12 +140,13 @@ public class Identifier {
         scanCan(false);
         computeMeans(samples, sampleMeans);
         for(float f : sampleMeans) {
-            if(f < .0001) {
+            Float f2 = new Float(f);
+            if(f2.isNaN()) {
                 lcd.clear();
                 try {
                     Thread.sleep(100);
                 } catch(InterruptedException e) {
-                    
+
                 }
                 return;
             }
@@ -153,11 +154,12 @@ public class Identifier {
         //normalize(sampleMeans);
         int match = findMatch();
         lcd.clear();
+        lcd.drawString("Object detected", 0, 0);
         lcd.drawString(TARGET_COLOR.tcToString(match + 1), 0, 1);
         try {
             Thread.sleep(100);
         } catch(InterruptedException e) {
-            
+
         }
     }
     /**
@@ -170,9 +172,9 @@ public class Identifier {
         scanCan(true);
         computeMeans(samples, sampleMeans);
         //normalize(sampleMeans);
-        
+
         int match = findMatch();
-        
+
         if((match + 1) == targetInt) {
             LocalEV3.get().getAudio().systemSound(0);
             this.isSampling = false;
@@ -184,33 +186,6 @@ public class Identifier {
         } 
     }
 
-    //    private void scanCan(boolean sweep) {
-    //        if(sweep){
-    //            (new Thread() {
-    //                public void run() {
-    //                    scanner.rotate(180, false);
-    //                    scanner.rotate(-180, false);
-    //                }
-    //            }).start();
-    //            
-    //            for(int i = 0; i < samples.length; i++) {
-    //                idLSRGB.fetchSample(samples[i], 0);
-    //                try {
-    //                    // sampling rate depends on sample size
-    //                    Thread.sleep(1000/(samples.length/4));  
-    //                } catch(InterruptedException e) {
-    //                    e.printStackTrace();
-    //                } 
-    //            }
-    //        } else {
-    //            for(int i = 0; i < samples.length; i++) {
-    //                idLSRGB.fetchSample(samples[i], 0);
-    //            }
-    //        }
-    //        
-    //        filterData(samples);
-    //    }
-    
     private void scanCan(boolean sweep) {
         if(sweep){
             (new Thread() {
@@ -219,9 +194,12 @@ public class Identifier {
                     scanner.rotate(-180, false);
                 }
             }).start();
-            
+
             for(int i = 0; i < samples.length; i++) {
                 idLSRGB.fetchSample(samples[i], 0);
+                //                if(i > 0) {
+                //                    filterData(samples[i], samples[i-1]);
+                //                }
                 normalize(samples[i]);
                 try {
                     // sampling rate depends on sample size
@@ -233,9 +211,15 @@ public class Identifier {
         } else {
             for(int i = 0; i < samples.length; i++) {
                 idLSRGB.fetchSample(samples[i], 0);
+                for(float f : samples[i]) {
+                    if(f < .0001) {
+                        f = 0;
+                    }
+                }
+                normalize(samples[i]);
             }
         }
-        
+
         filterData(samples);
     }
 
@@ -250,7 +234,7 @@ public class Identifier {
             samples = new float[numSamples][3];
         }
     }
-    
+
     private int findMatch() {
         float[] errors = new float[LI_REFERENCE_MEANS.length];
         for(int i = 0; i < errors.length; i++) {
@@ -277,13 +261,23 @@ public class Identifier {
         }
         System.out.println("}");
     }
-    
+
     private static void filterData(float[][] samples) {
         for(int i = 0; i < samples.length; i++) {
             for(int j = 1; j < samples[i].length; j++) {
                 if((samples[i][j]) > 0.6) {
                     samples[i][j] = (float)Math.min(samples[i][j-1], 0.6);
+                    //samples[i][j] = samples[i][j-1];
                 }
+            }
+        }
+    }
+
+    private static void filterData(float[] nowSample, float[] prevSample) {
+        for(int i = 0; i < nowSample.length && i < prevSample.length; i++) {
+            if(nowSample[i] > 0.6) {
+                nowSample[i] = prevSample[i];
+                //nowSample[i] = Math.min(prevSample[i], 0.6f);
             }
         }
     }
@@ -305,7 +299,7 @@ public class Identifier {
         means[2] = meanB;
     }
 
-    private static void normalize(float[] data) {
+    public static void normalize(float[] data) {
         data[0] = (float) (data[0]/Math.sqrt(Math.pow(data[0], 2) + Math.pow(data[1], 2) + Math.pow(data[2], 2)));
         data[1] = (float) (data[1]/Math.sqrt(Math.pow(data[0], 2) + Math.pow(data[1], 2) + Math.pow(data[2], 2)));
         data[2] = (float) (data[2]/Math.sqrt(Math.pow(data[0], 2) + Math.pow(data[1], 2) + Math.pow(data[2], 2)));
