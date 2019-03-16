@@ -5,4 +5,5 @@ public class TestClass {
 		Navigation nv = Navigation.getNavigation("B", "D");
 		nv.demo();
 	}
+	//Localization works in general. Parameters need to be tested and selected.
 }
