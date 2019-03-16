@@ -1,5 +1,6 @@
 package ca.mcgill.ecse211.FinalProject;
 
+import ca.mcgill.ecse211.lab5.Odometer;
 import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -13,19 +14,19 @@ public class Navigation {
 	 */
 	
 	//-----<Important Constant>-----//
-	private static final double RADIUS = 1.58;//cm. It is certifed by testing from Pengnan.
-	private static final double TRACK = 15;//cm. It is certified by testing from Pengnan.
-	volatile private static int ACCELERATION = 1000;
+	public static final double RADIUS = 1.5;//cm. It is certifed by testing from Pengnan.
+	public static final double TRACK = 15;//cm. It is certified by testing from Pengnan.
+	volatile private static int ACCELERATION = 500;
 	volatile private static int SPEED = 200;
 	private static final int TIME_INTERVAL = 15;//ms
 	private static final double TILE_SIZE = 30.28;//cm 
-	private static final double EDGE_DISTANCE = TILE_SIZE;
+	private static final double EDGE_DISTANCE = 1.5*TILE_SIZE;
 	private static final double NOTICE_MARGIN = 1;//cm
 	private static final double LS_TK_DIS = 8.75;//cm
 	private static final double LS_DIFF = TRACK;
 	private static final int INITIALIZING_SCOPE = 25;
 	private static final int MEASURING_SCOPE = 5;
-	private final double ROTATION_ERROR_CW = 30;
+	private final double ROTATION_ERROR_CW = 40;
 	private float LINE_L;
 	private float LINE_R;
 	
@@ -35,8 +36,8 @@ public class Navigation {
 	private int[] UR;
 		
 	//-----<Motor>-----//
-	private static EV3LargeRegulatedMotor LEFT_MOTOR;
-	private static EV3LargeRegulatedMotor RIGHT_MOTOR;
+	public static EV3LargeRegulatedMotor LEFT_MOTOR;
+	public static EV3LargeRegulatedMotor RIGHT_MOTOR;
 	
 	//-----<Sensors>-----//
 	private static SensorPoller LS_L = new LightSensorPoller("S2", TIME_INTERVAL, false);
@@ -114,6 +115,59 @@ public class Navigation {
 		initializeAcceleration();
 		initializeSpeed();
 		initializeLightSensors();
+	}
+	
+	private double calculateTheta(double dX, double dY) {
+		double headingTheta = 0;
+		if(dX>0) {
+			if(dY>0) {
+				headingTheta = Math.toDegrees(Math.atan(dX/dY));
+			} else if(dY<0) {
+				headingTheta = (Math.toDegrees(Math.atan(dX/dY))+180)%180;
+			} else {
+				headingTheta = 90;
+			}
+		} else if (dX<0){
+			if(dY>0) {
+				headingTheta = (Math.toDegrees(Math.atan(dX/dY))+360)%360;
+			} else if(dY<0) {
+				headingTheta = Math.toDegrees(Math.atan(dX/dY))+180;
+			} else {
+				headingTheta = 270;
+			}
+		} else {
+			if(dY>0) {
+				headingTheta = 0;
+			} else if(dX<0) {
+				headingTheta = 180;
+			} else {
+				headingTheta = 0;
+			}
+		}
+		return headingTheta;
+	}
+	
+	/**
+	 * @author Pengnan Fan
+	 * 
+	 * This drives the robot to a given coordinates
+	 * 
+	 * @param x: in the unit of tile size
+	 * @param y: in the unit of tile size
+	 */
+	public void travelTo(double x, double y) {
+		x*=TILE_SIZE;
+		y*=TILE_SIZE;
+		double dX = x - position[0];
+		double dY = y - position[1];
+		
+		turnTo(calculateTheta(dX, dY));
+		
+		double distance = Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
+		
+		moveForward(distance);
+
+	    Sound.beep();
 	}
 	
 	/**
@@ -239,7 +293,6 @@ public class Navigation {
 		    turnTo(dTheta);
 		    turnRight(ROTATION_ERROR_CW);
 		    Odometer.resetTheta();//Reset theta
-		    
 		    
 		    boolean left = false;
 		    boolean right = false;

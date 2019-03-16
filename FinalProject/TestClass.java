@@ -3,7 +3,9 @@ package ca.mcgill.ecse211.FinalProject;
 public class TestClass {
 	public static void main(String[] args) {
 		Navigation nv = Navigation.getNavigation("B", "D");
-		nv.demo();
+		Odometer odo = new Odometer();
+		odo.start();
+		//nv.demo();
+		nv.turnRight(90);
 	}
-	//Localization works in general. Parameters need to be tested and selected.
 }

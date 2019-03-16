@@ -68,9 +68,11 @@ public class UltrasonicSensorPoller implements SensorPoller{
 			ultrasonic.fetchSample(usData, 0);
 			float data = usData[0]*100;
 			if (data<INFTY) {
+				//System.out.println(data);
 				return data;
 			}
 		}
+		//System.out.println(INFTY);
 		return INFTY;
 	}
 }

@@ -24,8 +24,8 @@ import java.lang.Math;
 public class Odometer extends Thread {
   
   //------<Important Constant>------//
-  private final double TRACK;
-  private final double RADIUS;
+  private final double TRACK = Navigation.TRACK;
+  private final double RADIUS = Navigation.RADIUS;
   private static final long ODOMETER_PERIOD = 10; // odometer update period in ms
   
   //------<Counter>------//
@@ -33,26 +33,13 @@ public class Odometer extends Thread {
   private int rightMotorTachoCount;
   
   //------<Motors>------//
-  private EV3LargeRegulatedMotor leftMotor;
-  private EV3LargeRegulatedMotor rightMotor;
+  private EV3LargeRegulatedMotor leftMotor = Navigation.LEFT_MOTOR;
+  private EV3LargeRegulatedMotor rightMotor = Navigation.RIGHT_MOTOR;
   
   //------<Position>------//
   private static double[] position = new double[] {0,0,0};
 
-  public Odometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor,
-      final double RADIUS, final double TRACK) {
-	//Initialize the motors
-    this.leftMotor = leftMotor;
-    this.rightMotor = rightMotor;
-    
-    //Initialize the counters
-    this.leftMotorTachoCount = 0;
-    this.rightMotorTachoCount = 0;
-    
-    //Initialize the constants
-    this.TRACK = TRACK;
-    this.RADIUS = RADIUS;
-  }
+  public Odometer() {}
   
   /**
    *  run method (required for Thread)
