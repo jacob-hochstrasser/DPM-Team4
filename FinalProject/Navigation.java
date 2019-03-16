@@ -15,7 +15,7 @@ public class Navigation {
 	
 	//-----<Important Constant>-----//
 	public static final double RADIUS = 1.5;//cm. It is certifed by testing from Pengnan.
-	public static final double TRACK = 15;//cm. It is certified by testing from Pengnan.
+	public static final double TRACK = 17.5;//cm. It is certified by testing from Pengnan.
 	volatile private static int ACCELERATION = 500;
 	volatile private static int SPEED = 200;
 	private static final int TIME_INTERVAL = 15;//ms
@@ -284,7 +284,7 @@ public class Navigation {
 		    Sound.beep();
 		    stop();
 		    
-		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
+		    // Calculate angle of local maximum based on two detected edges and use it to find 0Â° 
 		    double dTheta = (-225 - 90 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
@@ -426,7 +426,7 @@ public class Navigation {
 		    Sound.beep();
 		    stop();
 		    
-		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
+		    // Calculate angle of local maximum based on two detected edges and use it to find 0Â° 
 		    double dTheta = (-225 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
@@ -568,7 +568,7 @@ public class Navigation {
 		    Sound.beep();
 		    stop();
 		    
-		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
+		    // Calculate angle of local maximum based on two detected edges and use it to find 0Â° 
 		    double dTheta = (-225 - 90 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
@@ -710,7 +710,7 @@ public class Navigation {
 		    Sound.beep();
 		    stop();
 		    
-		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
+		    // Calculate angle of local maximum based on two detected edges and use it to find 0Â° 
 		    double dTheta = (-225 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
