@@ -7,7 +7,7 @@
  * @author Michael Smith
  */
 
-package ca.mcgill.ecse211.FinalProject;
+package ca.mcgill.ecse211.Project;
 
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import java.lang.Math;
