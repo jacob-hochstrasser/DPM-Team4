@@ -14,10 +14,10 @@ public class Navigation {
 	 */
 	
 	//-----<Important Constant>-----//
-	public static final double RADIUS = 1.5;//cm. It is certifed by testing from Pengnan.
-	public static final double TRACK = 17.5;//cm. It is certified by testing from Pengnan.
-	volatile private static int ACCELERATION = 500;
-	volatile private static int SPEED = 200;
+	public static final double RADIUS = 1.6;//cm. It is certifed by testing from Pengnan.
+	public static final double TRACK = 24.5;//cm. It is certified by testing from Pengnan.
+	volatile private static int ACCELERATION = 1200;
+	volatile private static int SPEED = 500;
 	private static final int TIME_INTERVAL = 15;//ms
 	private static final double TILE_SIZE = 30.28;//cm 
 	private static final double EDGE_DISTANCE = 1.5*TILE_SIZE;
