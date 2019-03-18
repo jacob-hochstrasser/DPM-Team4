@@ -6,13 +6,12 @@ import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.sensor.EV3ColorSensor;
-import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
 
 public class MainProgram {
 
     // ** Set these as appropriate for your team and current situation **
-    private static final String SERVER_IP = "192.168.2.25";
+    private static final String SERVER_IP = "192.168.2.55";
     private static final int TEAM_NUMBER = 1;
 
     // Enable/disable printing of debug info from the WiFi class
