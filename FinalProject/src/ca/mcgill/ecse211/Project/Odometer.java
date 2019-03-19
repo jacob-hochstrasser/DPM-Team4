@@ -24,21 +24,48 @@ import java.lang.Math;
 public class Odometer extends Thread {
   
   //------<Important Constant>------//
+  /**
+   * The width from wheel to wheel (in cm)
+   */
   private final double TRACK = Navigation.TRACK;
+  /**
+   * The wheel radius (in cm)
+   */
   private final double RADIUS = Navigation.RADIUS;
+  /**
+   * Odometer update period (in ms)
+   */
   private static final long ODOMETER_PERIOD = 10; // odometer update period in ms
   
   //------<Counter>------//
+  /**
+   * Tachometer value of the left motor (in degrees)
+   */
   private int leftMotorTachoCount;
+  /**
+   * Tachometer value of the right motor (in degrees)
+   */
   private int rightMotorTachoCount;
   
   //------<Motors>------//
+  /**
+   * Reference to the left driving motor
+   */
   private EV3LargeRegulatedMotor leftMotor = Navigation.LEFT_MOTOR;
+  /**
+   * Reference to the right driving motor
+   */
   private EV3LargeRegulatedMotor rightMotor = Navigation.RIGHT_MOTOR;
   
   //------<Position>------//
+  /**
+   * The robot's current position (in cm)
+   */
   private static double[] position = new double[] {0,0,0};
 
+  /**
+   * 
+   */
   public Odometer() {}
   
   /**
@@ -111,19 +138,19 @@ public class Odometer extends Thread {
   
   /**
    * This method sets the horizontal position as x
-   * @param x
+   * @param x new x coordinate
    */
   public static void setX(double x) {position[0] = x;}
   
   /**
    * This method sets the vertical position as y
-   * @param y
+   * @param y new y coordinate
    */
   public static void setY(double y) {position[1] = y;}
   
   /**
    * This method sets the angular position as t 
-   * @param t
+   * @param t the new heading in degrees
    */
   public static void setT(double t) {position[2] = t;}
   

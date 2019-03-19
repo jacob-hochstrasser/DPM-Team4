@@ -32,7 +32,7 @@ public class Navigation {
 	 */
 	volatile private static int SPEED = 350;
 	/**
-	 * Time interval used for thread timing
+	 * Time interval used for thread timing (in ms)
 	 */
 	private static final int TIME_INTERVAL = 15;//ms
 	/**
@@ -116,13 +116,18 @@ public class Navigation {
 	
 	//-----<Position>-----//
 	/**
-	 * 
+	 * The current position of the robot (in cm)
 	 */
 	private double[] position = new double[] {0,0,0};
 	
 	//-----<Nested MotorController>-----//
+	/**
+	 * The singleton occurrence of the navigation class
+	 */
 	private static Navigation NV;
-	
+	/**
+	 * Enables printing of debugging statements
+	 */
 	protected static final boolean DEBUG = true;
 	
 	/**
@@ -176,6 +181,9 @@ public class Navigation {
 		initializeLightSensors();
 	}
 	
+	/**
+	 * Collects light samples before proceeding with program to establish a baseline.
+	 */
 	private void initializeLightSensors() {
 		float sum_left = 0;
 		float sum_right = 0;
@@ -187,6 +195,12 @@ public class Navigation {
 		LINE_R = sum_right/INITIALIZING_SCOPE;
 	}
 	
+	/**
+	 * Constructs a navigation object that controls the specified motors.
+	 * 
+	 * @param leftMotor the EV3 motor driving the left wheel
+	 * @param rightMotor the EV3 motor driving the right wheel
+	 */
 	private Navigation(String leftMotor, String rightMotor) {
 		LEFT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort(leftMotor));
 		RIGHT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort(rightMotor));
@@ -195,6 +209,13 @@ public class Navigation {
 		initializeLightSensors();
 	}
 	
+	/**
+	 * Calculates the heading the robot must face to be facing the target point relative to its current position.
+	 * 
+	 * @param dX the x coordinate of the target point
+	 * @param dY the y coordinate of the target point
+	 * @return the target heading
+	 */
 	private double calculateTheta(double dX, double dY) {
 		double headingTheta = 0;
 		if(dX>0) {
@@ -323,11 +344,19 @@ public class Navigation {
 		RIGHT_MOTOR.setAcceleration(ACCELERATION);
 	}
 	
+	/**
+	 * Determines whether the left localizing light sensor detected a gridline
+	 * @return if a gridline was detected
+	 */
 	private boolean detectLineLeft() {
 		float leftData = LS_L.getData(MEASURING_SCOPE);
 		return 1.15 < leftData/LINE_L || 0.85 > leftData/LINE_L;
 	}
 	
+	/**
+     * Determines whether the right localizing light sensor detected a gridline
+     * @return if a gridline was detected
+     */
 	private boolean detectLineRight() {
 		float rightData = LS_R.getData(MEASURING_SCOPE);
 		return 1.15 < rightData/LINE_R || 0.85 > rightData/LINE_R;
@@ -1128,7 +1157,18 @@ public class Navigation {
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 	}
 	
+	/**
+	 * Converts the given heading change into the required rotation of the driving motors.
+	 * 
+	 * @param angle the desired change in heading
+	 * @return the required rotation of the driving motors in degrees
+	 */
 	private int convertAngle(double angle) {return convertDistance(Math.PI * TRACK * angle / 360.0);}
 	  
+	/**
+	 * Converts the given linear distance the robot must travel into the required rotation of the driving motors.
+	 * @param distance the distance the robot is to move
+	 * @return the required rotation of the driving motors in degrees
+	 */
 	private int convertDistance(double distance) {return (int) ((180.0 * distance) / (Math.PI * RADIUS));}
 }

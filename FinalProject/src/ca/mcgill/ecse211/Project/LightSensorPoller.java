@@ -16,14 +16,29 @@ import lejos.robotics.SampleProvider;
 public class LightSensorPoller implements SensorPoller{
 
 	//-----<LightSensor>-----//
+    /**
+     * The port into which the referenced light sensor is plugged
+     */
 	private Port lsPort;
+	/**
+	 * The light sensor mode to be used
+	 */
 	private SensorModes lightSensor;
+	/**
+	 * The sample provider for the referenced light sensor
+	 */
 	private SampleProvider light;
 	
 	//-----<Important Constant>-----//
+	/**
+	 * The time interval between samples (in ms)
+	 */
 	private int TIME_INTERVAL;
 	
 	//-----<Data>-----//
+	/**
+	 * A buffer to store sample data
+	 */
 	private float[] lsData = new float[1];
 	
 	/**

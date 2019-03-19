@@ -15,16 +15,37 @@ import lejos.robotics.SampleProvider;
 
 public class UltrasonicSensorPoller implements SensorPoller{
 	//-----<LightSensor>-----//
+    /**
+     * The port into which the referenced ultrasonic sensor is plugged
+     */
 	private Port usPort;
+	/**
+	 * The ultrasonic sensor mode to use
+	 */
 	private SensorModes ultrasonicSensor;
+	/**
+	 * The sample provider for the referenced ultrasonic sensor
+	 */
 	private SampleProvider ultrasonic;
 	
 	//-----<Important Constant>-----//
+	/**
+	 * The time interval between samples (in ms)
+	 */
 	private int TIME_INTERVAL;
+	/**
+	 * The value that corresponds to an infinity (or null) reading
+	 */
 	private int INFTY = 255;
+	/**
+	 * The minimum number of infinity distance samples that must be received to be considered valid.
+	 */
 	private int FILTER_SCOPE = 20;
 	
 	//-----<Data>-----//
+	/**
+	 * A buffer to store the sample data in
+	 */
 	private float[] usData = new float[1];
 	
 	/**
