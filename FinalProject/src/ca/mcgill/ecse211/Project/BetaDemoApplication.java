@@ -2,13 +2,14 @@ package ca.mcgill.ecse211.Project;
 
 import java.util.Map;
 import ca.mcgill.ecse211.WiFiClient.WifiConnection;
+import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.robotics.SampleProvider;
 
-public class MainProgram {
+public class BetaDemoApplication {
 
     // ** Set these as appropriate for your team and current situation **
     private static final String SERVER_IP = "192.168.2.55";
@@ -17,8 +18,8 @@ public class MainProgram {
     // Enable/disable printing of debug info from the WiFi class
     private static final boolean ENABLE_DEBUG_WIFI_PRINT = true;
     
-    private static final EV3MediumRegulatedMotor SCANNER = new EV3MediumRegulatedMotor(LocalEV3.get().getPort("C"));
-    private static final SampleProvider IDRGB = new EV3ColorSensor(LocalEV3.get().getPort("S3")).getRGBMode();
+    //private static final EV3MediumRegulatedMotor SCANNER = new EV3MediumRegulatedMotor(LocalEV3.get().getPort("C"));
+    //private static final SampleProvider IDRGB = new EV3ColorSensor(LocalEV3.get().getPort("S3")).getRGBMode();
     private static final TextLCD LCD = LocalEV3.get().getTextLCD();
     
     private static final String LEFT_MOTOR = "B";
@@ -26,6 +27,7 @@ public class MainProgram {
     private static final Navigation NAV = Navigation.getNavigation(LEFT_MOTOR, RIGHT_MOTOR);
     private static final Odometer ODO = new Odometer();
     private static Identifier ID;
+    protected static final boolean DEBUG = true;
 
     @SuppressWarnings("rawtypes")
     public static void main(String[] args) {
@@ -67,14 +69,36 @@ public class MainProgram {
             System.err.println("Error: " + e.getMessage());
         }
         
-        ID = new Identifier(SCANNER, targetColor, IDRGB, 1000, LCD);
+        //ID = new Identifier(SCANNER, targetColor, IDRGB, 1000, LCD);
         ODO.start();
         NAV.setup(ll, ur, startCorner);
         NAV.localize();
+        if(DEBUG) {
+            System.out.println("" + Odometer.getX() + ", " + Odometer.getY() + "," + Odometer.getT());
+            System.out.println("Travelling to tunnel");
+        }
         NAV.travelTo(tunnel_ll);
-        NAV.travelTo(tunnel_ll[0], tunnel_ll[1] + (tunnel_ur[1] - tunnel_ll[1])/2);
+        if(DEBUG) {
+            System.out.println("Tunnel reached");
+        }
+        //NAV.travelTo(tunnel_ll[0], tunnel_ll[1] + (tunnel_ur[1] - tunnel_ll[1])/2);
+        if(DEBUG) {
+            System.out.println("Ready to travel through tunnel");
+            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+            System.out.println("Travelling through tunnel");
+        }
         NAV.travelTo(tunnel_ur[0], tunnel_ur[1] - (tunnel_ur[1] - tunnel_ll[1]/2));
+        if(DEBUG) {
+            System.out.println("Reached island");
+            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+            System.out.println("Travelling to search zone");
+        }
         NAV.travelTo(sz_ll);
+        if(DEBUG) {
+            System.out.println("Search zone reached");
+            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+            System.out.println("Travelling to finish");
+        }
         try {
             Thread.sleep(1000);
             LocalEV3.get().getAudio().systemSound(3);
@@ -85,7 +109,9 @@ public class MainProgram {
         //perform search for can
         NAV.travelTo(sz_ur);
         LocalEV3.get().getAudio().systemSound(3);
-        
+        if(DEBUG) {
+            System.out.println("Finished");
+        }
     }
 
 }

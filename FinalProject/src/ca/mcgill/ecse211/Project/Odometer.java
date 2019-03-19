@@ -98,6 +98,9 @@ public class Odometer extends Thread {
 	return position;
   }
   
+  public static double getX() {return position[0];}
+  
+  public static double getY() {return position[1];}
   /**
    * This method returns the current angle data
    * @return

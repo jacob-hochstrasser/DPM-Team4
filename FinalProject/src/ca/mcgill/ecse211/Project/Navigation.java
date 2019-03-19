@@ -1,5 +1,6 @@
 package ca.mcgill.ecse211.Project;
 
+import lejos.hardware.Button;
 import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -16,7 +17,7 @@ public class Navigation {
 	public static final double RADIUS = 1.6;//cm. It is certifed by testing from Pengnan.
 	public static final double TRACK = 24.5;//cm. It is certified by testing from Pengnan.
 	volatile private static int ACCELERATION = 1200;
-	volatile private static int SPEED = 500;
+	volatile private static int SPEED = 200;
 	private static final int TIME_INTERVAL = 15;//ms
 	private static final double TILE_SIZE = 30.28;//cm 
 	private static final double EDGE_DISTANCE = 1.5*TILE_SIZE;
@@ -48,6 +49,9 @@ public class Navigation {
 	
 	//-----<Nested MotorController>-----//
 	private static Navigation NV;
+	//private static final Odometer ODO = Odometer.getOdometer();
+	
+	protected static final boolean DEBUG = true;
 	
 	public void demo() {
 		localize();
@@ -273,6 +277,11 @@ public class Navigation {
 		        	stop();
 		        	isDetected = true;
 		        	pos1 = Odometer.getPosition();
+		        	if(DEBUG) {
+		        	    System.out.println("Falling Edge detected");
+		        	    if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+		        	}
+		        	
 		        }
 		    }
 		    //Sound.beep();
@@ -294,21 +303,29 @@ public class Navigation {
 		        	stop();
 		        	isDetected = true;
 		        	pos2 = Odometer.getPosition();
+		        	if(DEBUG) {
+                        System.out.println("Falling Edge detected");
+                        if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+                    }
 		        }
 		    }
 		    
 		    //Sound.beep();
 		    stop();
 		    
-		    // Calculate angle of local maximum based on two detected edges and use it to find 0Â° 
+		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
 		    double dTheta = (-225 - 90 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
 		    //Turn to 0
 		    
 		    turnTo(dTheta);
-		    turnRight(ROTATION_ERROR_CW);
+		    //turnRight(ROTATION_ERROR_CW);
 		    Odometer.resetTheta();//Reset theta
+		    if(DEBUG) {
+                System.out.println("Facing 0 degrees");
+                if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+            }
 		    
 		    boolean left = false;
 		    boolean right = false;
@@ -322,6 +339,9 @@ public class Navigation {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
 			    	//Sound.beep();
+			    	if(DEBUG) {
+                        System.out.println("Left line Detected");
+                    }
 			    	if(right) {
 			    		stop();
 			    	}
@@ -330,6 +350,9 @@ public class Navigation {
 			    	right = true;
 			    	rightDetection = LEFT_MOTOR.getTachoCount();
 			    	//Sound.beep();
+			    	if(DEBUG) {
+                        System.out.println("Right line detected");
+                    }
 			    	if(left) {
 			    		stop();
 			    	}
@@ -337,7 +360,7 @@ public class Navigation {
 		    } while(!left||!right);
 		    //stop();
 		    
-		    
+		    if(DEBUG && Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
 		    double diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
 		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
 		    
@@ -362,6 +385,9 @@ public class Navigation {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
 			    	//Sound.beep();
+			    	if(DEBUG) {
+                        System.out.println("Left line detected");
+                    }
 			    	if(right) {
 			    		stop();
 			    	}
@@ -370,6 +396,9 @@ public class Navigation {
 			    	right = true;
 			    	rightDetection = LEFT_MOTOR.getTachoCount();
 			    	//Sound.beep();
+			    	if(DEBUG) {
+                        System.out.println("Right line detected");
+                    }
 			    	if(left) {
 			    		stop();
 			    	}
@@ -377,7 +406,7 @@ public class Navigation {
 		    } while(!left||!right);
 		    //stop();
 		    
-		    
+		    if(DEBUG && Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
 		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
 		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
 		    
@@ -827,6 +856,10 @@ public class Navigation {
 			Sound.beep();
 			System.exit(0);
 		}
+		if(DEBUG) {
+            System.out.println("Localized");
+            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+        }
 		Sound.beep();
 	}
 	
