@@ -1,6 +1,5 @@
 package ca.mcgill.ecse211.Project;
 
-import lejos.hardware.Button;
 import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -14,10 +13,16 @@ public class Navigation {
 	 */
 	
 	//-----<Important Constant>-----//
+	/**
+	 * This parameter stands for the radius of wheels.
+	 */
 	public static final double RADIUS = 1.6;//cm. It is certifed by testing from Pengnan.
-	public static final double TRACK = 25.5;//cm. It is certified by testing from Pengnan.
+	/**
+	 * This parameter stands for the distances between two tracks.
+	 */
+	public static final double TRACK = 24.5;//cm. It is certified by testing from Pengnan.
 	volatile private static int ACCELERATION = 1200;
-	volatile private static int SPEED = 400;
+	volatile private static int SPEED = 500;
 	private static final int TIME_INTERVAL = 15;//ms
 	private static final double TILE_SIZE = 30.28;//cm 
 	private static final double EDGE_DISTANCE = 1.5*TILE_SIZE;
@@ -36,7 +41,13 @@ public class Navigation {
 	private int[] UR;
 		
 	//-----<Motor>-----//
+	/**
+	 * This object stands for the left motor.
+	 */
 	public static EV3LargeRegulatedMotor LEFT_MOTOR;
+	/**
+	 * This object stands for the right motor.
+	 */
 	public static EV3LargeRegulatedMotor RIGHT_MOTOR;
 	
 	//-----<Sensors>-----//
@@ -45,32 +56,31 @@ public class Navigation {
 	private static SensorPoller US = new UltrasonicSensorPoller("S3", TIME_INTERVAL);
 	
 	//-----<Position>-----//
-	private double[] position = new double[] {0,0,0};
+	private float[] position = new float[] {0,0,0};
 	
 	//-----<Nested MotorController>-----//
 	private static Navigation NV;
-	//private static final Odometer ODO = Odometer.getOdometer();
 	
-	protected static final boolean DEBUG = true;
-	
-	public void demo() {
+	/**
+	 * This is only for block testing
+	 */
+	void demo() {
 		localize();
 	}
 	
 	/**
-	 * @author Pengnan Fan
 	 * 
-	 * This is a static method used to get a Navigation object.
+	 * This method is used to get a Navigation object. 
 	 * Note: Only one of this type of object can be accessed.
+	 *
+	 * @param leftMotor
+	 * This input indicates the string of the port used for left motor.
 	 * 
-	 * @param leftMotor:String
-	 * This input shows the port used for left motor.
+	 * @param rightMotor
+	 * This input indicates the string of the port used for right motor.
 	 * 
-	 * @param rightMotor:String
-	 * This input shows the port used for right motor.
-	 * 
-	 * @return NV:Navigation
-	 * This output is the Navigation nested in the class.
+	 * @return 
+	 * This method returns a Navigation object nested in the class.
 	 * 
 	 */
 	public static Navigation getNavigation(String leftMotor, String rightMotor) {
@@ -81,15 +91,13 @@ public class Navigation {
 	}
 	
 	/**
-	 * @author Pengnan Fan
+	 * This method sets up the searching range and the starting corner.
 	 * 
-	 * This method sets up searching range and starting corner
+	 * @param LL
+	 * This input is a 2-element array indicating the lower left coordinates of the searching range
 	 * 
-	 * @param LL:int array
-	 * This input suggests the lower left coordinates of the searching range
-	 * 
-	 * @param UR:int array
-	 * This input suggests the upper right coordinates of the searching range
+	 * @param UR
+	 * This input is a 2-element array indicating the upper right coordinates of the searching range
 	 * 
 	 * @param START_CORNER
 	 * This input suggests the starting corner
@@ -151,15 +159,14 @@ public class Navigation {
 	}
 	
 	/**
-	 * @author Pengnan Fan
+	 * This method drives the robot to a given coordinates in the unit of a tile size.
 	 * 
-	 * This drives the robot to a given coordinates
-	 * 
-	 * @param x: in the unit of tile size
-	 * @param y: in the unit of tile size
+	 * @param x
+	 * This input indicates the x coordinate in the unit of a tile size.
+	 * @param y
+	 * This input indicates the y coordinate in the unit of a tile size
 	 */
 	public void travelTo(double x, double y) {
-	    position = Odometer.getPosition();
 		x*=TILE_SIZE;
 		y*=TILE_SIZE;
 		double dX = x - position[0];
@@ -174,21 +181,21 @@ public class Navigation {
 	    //Sound.beep();
 	}
 	
+	/**
+	 * This method drives the robot to a given coordinates in the unit of a tile size.
+	 * @param coords
+	 * This input is a 2-element array for the coodinates in the unit of a tile size.
+	 */
 	public void travelTo(int[] coords) {
 	    travelTo(coords[0], coords[1]);
-    }
-	
-	public void travelTo(double[] coords) {
-        travelTo(coords[0], coords[1]);
+        //Sound.beep();
     }
 	
 	/**
-	 * @author Pengnan Fan
+	 * This method resets the acceleration and re-initializes the motor with the new acceleration.
 	 * 
-	 * This method reset the acceleration and re-initialize the motor.
-	 * 
-	 * @param newAcceleration:int
-	 * This input is the new acceleration.
+	 * @param newAcceleration
+	 * This input is an int for the new acceleration.
 	 * 
 	 */
 	public void setAcceleration(int newAcceleration) {
@@ -197,12 +204,11 @@ public class Navigation {
 	}
 	
 	/**
-	 * @author Pengnan Fan
 	 * 
-	 * This method reset the speed and re-initialize the motor.
+	 * This method resets the speed and re-initializes the motor with the new speed.
 	 * 
 	 * @param newSpeed:int
-	 * This input is the new speed.
+	 * This input is an int for the new speed.
 	 * 
 	 */
 	public void setSpeed(int newSpeed) {
@@ -211,9 +217,8 @@ public class Navigation {
 	}
 	
 	/**
-	 * @author Pengnan Fan
 	 * 
-	 * This method initialize the speed of motors.
+	 * This method initializes the motors with the current speed.
 	 * 
 	 */
 	public void initializeSpeed() {
@@ -224,9 +229,8 @@ public class Navigation {
 	}
 
 	/**
-	 * @author Pengnan Fan
 	 * 
-	 * This method initialize the acceleration of motors.
+	 * This method initializes the motors with the current acceleration.
 	 * 
 	 */
 	public void initializeAcceleration() {
@@ -246,6 +250,93 @@ public class Navigation {
 		return 1.15 < rightData/LINE_R || 0.85 > rightData/LINE_R;
 	}
 
+	/**
+	 * 
+	 * This method re-localizes the robot with light sensors during the navigation. 
+	 * 
+	 */
+	public void reLocalize() {
+		boolean left = false;
+	    boolean right = false;
+	    double leftDetection = 0;
+	    double rightDetection = 0;
+	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	    LEFT_MOTOR.forward();
+	    RIGHT_MOTOR.forward();
+	    do {
+		    if(detectLineLeft()&&!left) {
+		    	left = true;
+		    	leftDetection = LEFT_MOTOR.getTachoCount();
+		    	Sound.beep();
+		    	if(right) {
+		    		stop();
+		    	}
+		    }
+		    if(detectLineRight()&&!right) {
+		    	right = true;
+		    	rightDetection = LEFT_MOTOR.getTachoCount();
+		    	Sound.beep();
+		    	if(left) {
+		    		stop();
+		    	}
+		    }
+	    } while(!left||!right);
+	    //stop();
+	    
+	    
+	    double diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+	    double dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+	    
+	    turnLeft(dTheta);
+	    //turnRight(ROTATION_ERROR_CCW);
+	    
+	    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), true);
+		RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
+		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		
+		turnRight(90);
+		
+		left = false;
+	    right = false;
+	    leftDetection = 0;
+	    rightDetection = 0;
+	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	    LEFT_MOTOR.forward();
+	    RIGHT_MOTOR.forward();
+	    do {
+		    if(detectLineLeft()&&!left) {
+		    	left = true;
+		    	leftDetection = LEFT_MOTOR.getTachoCount();
+		    	Sound.beep();
+		    	if(right) {
+		    		stop();
+		    	}
+		    }
+		    if(detectLineRight()&&!right) {
+		    	right = true;
+		    	rightDetection = LEFT_MOTOR.getTachoCount();
+		    	Sound.beep();
+		    	if(left) {
+		    		stop();
+		    	}
+		    }
+	    } while(!left||!right);
+	    //stop();
+	    
+	    
+	    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+	    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+	    
+	    turnLeft(dTheta);
+	    //turnRight(ROTATION_ERROR_CCW);
+	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), true);
+		RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
+		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	    
+		turnLeft(90);
+		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	}
 	
 	public void localize() {
 		
@@ -269,11 +360,6 @@ public class Navigation {
 		        	stop();
 		        	isDetected = true;
 		        	pos1 = Odometer.getPosition();
-		        	if(DEBUG) {
-		        	    System.out.println("Falling Edge detected");
-		        	    if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-		        	}
-		        	
 		        }
 		    }
 		    //Sound.beep();
@@ -295,29 +381,21 @@ public class Navigation {
 		        	stop();
 		        	isDetected = true;
 		        	pos2 = Odometer.getPosition();
-		        	if(DEBUG) {
-                        System.out.println("Falling Edge detected");
-                        if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-                    }
 		        }
 		    }
 		    
 		    //Sound.beep();
 		    stop();
 		    
-		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
+		    // Calculate angle of local maximum based on two detected edges and use it to find 0Â° 
 		    double dTheta = (-225 - 90 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
 		    //Turn to 0
 		    
 		    turnTo(dTheta);
-		    //turnRight(ROTATION_ERROR_CW);
+		    turnRight(ROTATION_ERROR_CW);
 		    Odometer.resetTheta();//Reset theta
-		    if(DEBUG) {
-                System.out.println("Facing 0 degrees");
-                if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-            }
 		    
 		    boolean left = false;
 		    boolean right = false;
@@ -331,9 +409,6 @@ public class Navigation {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
 			    	//Sound.beep();
-			    	if(DEBUG) {
-                        System.out.println("Left line Detected");
-                    }
 			    	if(right) {
 			    		stop();
 			    	}
@@ -342,9 +417,6 @@ public class Navigation {
 			    	right = true;
 			    	rightDetection = LEFT_MOTOR.getTachoCount();
 			    	//Sound.beep();
-			    	if(DEBUG) {
-                        System.out.println("Right line detected");
-                    }
 			    	if(left) {
 			    		stop();
 			    	}
@@ -352,7 +424,7 @@ public class Navigation {
 		    } while(!left||!right);
 		    //stop();
 		    
-		    if(DEBUG && Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+		    
 		    double diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
 		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
 		    
@@ -377,9 +449,6 @@ public class Navigation {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
 			    	//Sound.beep();
-			    	if(DEBUG) {
-                        System.out.println("Left line detected");
-                    }
 			    	if(right) {
 			    		stop();
 			    	}
@@ -388,9 +457,6 @@ public class Navigation {
 			    	right = true;
 			    	rightDetection = LEFT_MOTOR.getTachoCount();
 			    	//Sound.beep();
-			    	if(DEBUG) {
-                        System.out.println("Right line detected");
-                    }
 			    	if(left) {
 			    		stop();
 			    	}
@@ -398,7 +464,7 @@ public class Navigation {
 		    } while(!left||!right);
 		    //stop();
 		    
-		    if(DEBUG && Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+		    
 		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
 		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
 		    
@@ -414,7 +480,7 @@ public class Navigation {
 		    Odometer.setX(TILE_SIZE);
 		    Odometer.setY(TILE_SIZE);
 		    Odometer.setT(0);
-		    position = new double[] {1,1,0};
+		    position = new float[] {1,1,0};
 		    
 		} else if (START_CORNER == 1) {
 			//Down right
@@ -556,7 +622,7 @@ public class Navigation {
 		    Odometer.setX(7*TILE_SIZE);
 		    Odometer.setY(TILE_SIZE);
 		    Odometer.setT(0);
-		    position = new double[] {7,1,0};
+		    position = new float[] {7,1,0};
 		    
 		} else if (START_CORNER == 2) {
 			//Up left
@@ -698,7 +764,7 @@ public class Navigation {
 		    Odometer.setX(7*TILE_SIZE);
 		    Odometer.setY(7*TILE_SIZE);
 		    Odometer.setT(180);
-		    position = new double[] {7,7,180};
+		    position = new float[] {7,7,180};
 		    
 		} else if (START_CORNER == 3) {
 			//Up right
@@ -840,7 +906,7 @@ public class Navigation {
 		    Odometer.setX(TILE_SIZE);
 		    Odometer.setY(7*TILE_SIZE);
 		    Odometer.setT(0);
-		    position = new double[] {1,7,0};
+		    position = new float[] {1,7,0};
 		    		    
 		} else {
 			Sound.beep();
@@ -848,10 +914,6 @@ public class Navigation {
 			Sound.beep();
 			System.exit(0);
 		}
-		if(DEBUG) {
-            System.out.println("Localized");
-            //if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-        }
 		Sound.beep();
 	}
 	
