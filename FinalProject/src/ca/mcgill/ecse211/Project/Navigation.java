@@ -15,9 +15,9 @@ public class Navigation {
 	
 	//-----<Important Constant>-----//
 	public static final double RADIUS = 1.6;//cm. It is certifed by testing from Pengnan.
-	public static final double TRACK = 24.5;//cm. It is certified by testing from Pengnan.
+	public static final double TRACK = 25.5;//cm. It is certified by testing from Pengnan.
 	volatile private static int ACCELERATION = 1200;
-	volatile private static int SPEED = 200;
+	volatile private static int SPEED = 400;
 	private static final int TIME_INTERVAL = 15;//ms
 	private static final double TILE_SIZE = 30.28;//cm 
 	private static final double EDGE_DISTANCE = 1.5*TILE_SIZE;
@@ -45,7 +45,7 @@ public class Navigation {
 	private static SensorPoller US = new UltrasonicSensorPoller("S3", TIME_INTERVAL);
 	
 	//-----<Position>-----//
-	private float[] position = new float[] {0,0,0};
+	private double[] position = new double[] {0,0,0};
 	
 	//-----<Nested MotorController>-----//
 	private static Navigation NV;
@@ -159,6 +159,7 @@ public class Navigation {
 	 * @param y: in the unit of tile size
 	 */
 	public void travelTo(double x, double y) {
+	    position = Odometer.getPosition();
 		x*=TILE_SIZE;
 		y*=TILE_SIZE;
 		double dX = x - position[0];
@@ -174,20 +175,11 @@ public class Navigation {
 	}
 	
 	public void travelTo(int[] coords) {
-	    double x = coords[0];
-	    double y = coords[1];
-        x*=TILE_SIZE;
-        y*=TILE_SIZE;
-        double dX = x - position[0];
-        double dY = y - position[1];
-        
-        turnTo(calculateTheta(dX, dY));
-        
-        double distance = Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
-        
-        moveForward(distance);
-
-        //Sound.beep();
+	    travelTo(coords[0], coords[1]);
+    }
+	
+	public void travelTo(double[] coords) {
+        travelTo(coords[0], coords[1]);
     }
 	
 	/**
@@ -422,7 +414,7 @@ public class Navigation {
 		    Odometer.setX(TILE_SIZE);
 		    Odometer.setY(TILE_SIZE);
 		    Odometer.setT(0);
-		    position = new float[] {1,1,0};
+		    position = new double[] {1,1,0};
 		    
 		} else if (START_CORNER == 1) {
 			//Down right
@@ -564,7 +556,7 @@ public class Navigation {
 		    Odometer.setX(7*TILE_SIZE);
 		    Odometer.setY(TILE_SIZE);
 		    Odometer.setT(0);
-		    position = new float[] {7,1,0};
+		    position = new double[] {7,1,0};
 		    
 		} else if (START_CORNER == 2) {
 			//Up left
@@ -706,7 +698,7 @@ public class Navigation {
 		    Odometer.setX(7*TILE_SIZE);
 		    Odometer.setY(7*TILE_SIZE);
 		    Odometer.setT(180);
-		    position = new float[] {7,7,180};
+		    position = new double[] {7,7,180};
 		    
 		} else if (START_CORNER == 3) {
 			//Up right
@@ -848,7 +840,7 @@ public class Navigation {
 		    Odometer.setX(TILE_SIZE);
 		    Odometer.setY(7*TILE_SIZE);
 		    Odometer.setT(0);
-		    position = new float[] {1,7,0};
+		    position = new double[] {1,7,0};
 		    		    
 		} else {
 			Sound.beep();
@@ -858,7 +850,7 @@ public class Navigation {
 		}
 		if(DEBUG) {
             System.out.println("Localized");
-            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+            //if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
         }
 		Sound.beep();
 	}

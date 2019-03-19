@@ -1,5 +1,6 @@
 package ca.mcgill.ecse211.Project;
 
+import java.text.DecimalFormat;
 import java.util.Map;
 import ca.mcgill.ecse211.WiFiClient.WifiConnection;
 import lejos.hardware.Button;
@@ -12,7 +13,7 @@ import lejos.robotics.SampleProvider;
 public class BetaDemoApplication {
 
     // ** Set these as appropriate for your team and current situation **
-    private static final String SERVER_IP = "192.168.2.55";
+    private static final String SERVER_IP = "192.168.2.13";
     private static final int TEAM_NUMBER = 1;
 
     // Enable/disable printing of debug info from the WiFi class
@@ -28,10 +29,12 @@ public class BetaDemoApplication {
     private static final Odometer ODO = new Odometer();
     private static Identifier ID;
     protected static final boolean DEBUG = true;
+    protected static final DecimalFormat DF = new DecimalFormat();
 
     @SuppressWarnings("rawtypes")
     public static void main(String[] args) {
 
+        DF.setMaximumFractionDigits(2);
         // Initialize WifiConnection class
         WifiConnection conn = new WifiConnection(SERVER_IP, TEAM_NUMBER, ENABLE_DEBUG_WIFI_PRINT);
         
@@ -55,9 +58,9 @@ public class BetaDemoApplication {
             island_ll[1] = ((Long) data.get("Island_LL_y")).intValue();
             island_ur[0] = ((Long) data.get("Island_UR_x")).intValue();
             island_ur[1] = ((Long) data.get("Island_UR_y")).intValue();
-            tunnel_ll[0] = ((Long) data.get("TNR_LL_x")).intValue() - 1;
+            tunnel_ll[0] = ((Long) data.get("TNR_LL_x")).intValue();
             tunnel_ll[1] = ((Long) data.get("TNR_LL_y")).intValue();
-            tunnel_ur[0] = ((Long) data.get("TNR_UR_x")).intValue() + 1;
+            tunnel_ur[0] = ((Long) data.get("TNR_UR_x")).intValue();
             tunnel_ur[1] = ((Long) data.get("TNR_UR_y")).intValue();
             sz_ll[0] = ((Long) data.get("SZR_LL_x")).intValue();
             sz_ll[1] = ((Long) data.get("SZR_LL_y")).intValue();
@@ -70,29 +73,37 @@ public class BetaDemoApplication {
         }
         
         //ID = new Identifier(SCANNER, targetColor, IDRGB, 1000, LCD);
+        double[] tunnelLeft = {tunnel_ll[0] - 1, tunnel_ll[1] + .5};
+        double[] tunnelRight = {tunnel_ur[0] + 1, tunnel_ur[1] - .5};
         ODO.start();
         NAV.setup(ll, ur, startCorner);
         NAV.localize();
         if(DEBUG) {
-            System.out.println("" + Odometer.getX() + ", " + Odometer.getY() + "," + Odometer.getT());
+            System.out.println("" + DF.format(Odometer.getX()) + ", " + DF.format(Odometer.getY()) + "," + DF.format(Odometer.getT()));
+            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
             System.out.println("Travelling to tunnel");
         }
-        NAV.travelTo(tunnel_ll);
+        NAV.travelTo(tunnelLeft);
         if(DEBUG) {
             System.out.println("Tunnel reached");
+            System.out.println("" + DF.format(Odometer.getX()) + ", " + DF.format(Odometer.getY()) + "," + DF.format(Odometer.getT()));
+            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
         }
         //NAV.travelTo(tunnel_ll[0], tunnel_ll[1] + (tunnel_ur[1] - tunnel_ll[1])/2);
-        if(DEBUG) {
-            System.out.println("Ready to travel through tunnel");
-            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-            System.out.println("Travelling through tunnel");
-        }
-        NAV.travelTo(tunnel_ur[0], tunnel_ur[1] - (tunnel_ur[1] - tunnel_ll[1]/2));
+        //        if(DEBUG) {
+        //            System.out.println("Ready to travel through tunnel");
+        //            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+        //            System.out.println("Travelling through tunnel");
+        //        }
+        //        NAV.travelTo(tunnel_ur[0], tunnel_ur[1] - (tunnel_ur[1] - tunnel_ll[1]/2));
+        NAV.setSpeed(800);
+        NAV.travelTo(tunnelRight);
         if(DEBUG) {
             System.out.println("Reached island");
             if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
             System.out.println("Travelling to search zone");
         }
+        NAV.setSpeed(400);
         NAV.travelTo(sz_ll);
         if(DEBUG) {
             System.out.println("Search zone reached");
