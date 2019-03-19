@@ -11,44 +11,103 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.robotics.SampleProvider;
 
+/**
+ * Main class being run on the robot. It establishes a wifi connection and receives data from it, controls the logic of the main program, and initializes all the classes and variables.
+ *  
+ * @author Jake
+ *
+ */
 public class BetaDemoApplication {
 
-    // ** Set these as appropriate for your team and current situation **
+    /**
+     * The IP address of the server (ie laptop) communicating with the robot.
+     */
     private static final String SERVER_IP = "192.168.2.13";
+    
+    /**
+     * The number of the team responsible for the robot.
+     */
     private static final int TEAM_NUMBER = 1;
 
-    // Enable/disable printing of debug info from the WiFi class
+    /**
+     * Enables printing of messages during wifi connection for debugging
+     */
     private static final boolean ENABLE_DEBUG_WIFI_PRINT = true;
     
+    /**
+     * The motor used to scan around cans.
+     */
     //private static final EV3MediumRegulatedMotor SCANNER = new EV3MediumRegulatedMotor(LocalEV3.get().getPort("C"));
+    
+    /**
+     * The Sample Provider for the identifying color sensor
+     */
     //private static final SampleProvider IDRGB = new EV3ColorSensor(LocalEV3.get().getPort("S3")).getRGBMode();
+    
+    /**
+     * The text LCD of the containing EV3 brick
+     */
     private static final TextLCD LCD = LocalEV3.get().getTextLCD();
     
+    /**
+     * String identifying the port of the left motor
+     */
     private static final String LEFT_MOTOR = "B";
+    
+    /**
+     * String identifying the port of the right motor
+     */
     private static final String RIGHT_MOTOR = "D";
+    
+    /**
+     * The navigation class that handles all methods for localizing, moving, and orienting the robot
+     */
     private static final Navigation NAV = Navigation.getNavigation(LEFT_MOTOR, RIGHT_MOTOR);
+    
+    /**
+     * The odometer that keeps track of the robot's position and heading
+     */
     private static final Odometer ODO = new Odometer();
+    
+    /**
+     * The identifier class that handles can color identification
+     */
     private static Identifier ID;
+    
+    /**
+     * Enables printing of statements during program execution for debugging
+     */
     protected static final boolean DEBUG = true;
+    
+    /**
+     * Formats decimal values for printing debugging statements
+     */
     protected static final DecimalFormat DF = new DecimalFormat();
 
+    /**
+     * Main execution thread of the program.
+     */
     @SuppressWarnings("rawtypes")
     public static void main(String[] args) {
 
+        // limit number of decimals for formatted numbers to two decimal places
         DF.setMaximumFractionDigits(2);
+        
         // Initialize WifiConnection class
         WifiConnection conn = new WifiConnection(SERVER_IP, TEAM_NUMBER, ENABLE_DEBUG_WIFI_PRINT);
         
-        int[] ll = new int[2];
-        int[] ur = new int[2];
-        int[] island_ll = new int[2];
-        int[] island_ur = new int[2];
-        int[] tunnel_ll = new int[2];
-        int[] tunnel_ur = new int[2];
-        int[] sz_ll = new int[2];
-        int[] sz_ur = new int[2];
-        int startCorner = 0, targetColor = 0;
+        /*--- Variables to store data necessary for the demo ---*/
+        int[] ll = new int[2]; // lower left coordinates of the team's home zone
+        int[] ur = new int[2]; // upper right coordinates of the team's home zone
+        int[] island_ll = new int[2]; // lower left coordinates of the island
+        int[] island_ur = new int[2]; // upper right coordinates of the island
+        int[] tunnel_ll = new int[2]; // lower left coordinates of the tunnel
+        int[] tunnel_ur = new int[2]; // upper right coordinates of the tunnel
+        int[] sz_ll = new int[2]; // lower left coordinates of the team's search zone
+        int[] sz_ur = new int[2]; // upper right coordinates of the team's search zone
+        int startCorner = 0, targetColor = 0; // starting corner of the competition table, target can color (1 = blue, 2 = green, 3 = yellow, 4 = red)
         
+        /*--- Collect data from the server ---*/
         try {
             Map data = conn.getData();
             ll[0] = ((Long) data.get("Red_LL_x")).intValue();
@@ -74,10 +133,13 @@ public class BetaDemoApplication {
         }
         
         //ID = new Identifier(SCANNER, targetColor, IDRGB, 1000, LCD);
+        
+        /*--- Offset coordinates of tunnel as navigation target (so robot doesn't hit the corner of it ---*/
         double[] tunnelLeft = {tunnel_ll[0] - 1, tunnel_ll[1] + .5};
         double[] tunnelRight = {tunnel_ur[0] + 1, tunnel_ur[1] - .5};
+        
         ODO.start();
-        NAV.setup(ll, ur, startCorner);
+        NAV.setup(ll, ur, startCorner); // initialize values of lower left and upper right of table and start corner; initialize acceleration, speed, and light sensor baseline
         NAV.localize();
         if(DEBUG) {
             System.out.println("" + DF.format(Odometer.getX()) + ", " + DF.format(Odometer.getY()) + "," + DF.format(Odometer.getT()));

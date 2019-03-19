@@ -23,23 +23,71 @@ public class Navigation {
 	 * This parameter stands for the distances between two tracks.
 	 */
 	public static final double TRACK = 24.5;//cm. It is certified by testing from Pengnan.
+	/**
+	 * Angular acceleration of the motors
+	 */
 	volatile private static int ACCELERATION = 1200;
+	/**
+	 * Angular velocity of the motors
+	 */
 	volatile private static int SPEED = 350;
+	/**
+	 * Time interval used for thread timing
+	 */
 	private static final int TIME_INTERVAL = 15;//ms
-	private static final double TILE_SIZE = 30.28;//cm 
+	/**
+	 * Size of floor tiles
+	 */
+	private static final double TILE_SIZE = 30.28;//cm
+	/**
+	 * Constant used to trigger falling edge detection
+	 */
 	private static final double EDGE_DISTANCE = 1.5*TILE_SIZE;
+	/**
+	 * Margin used for noise handling during falling edge localization
+	 */
 	private static final double NOTICE_MARGIN = 1;//cm
+	/**
+	 * Track distance of localizing light sensors
+	 */
 	private static final double LS_TK_DIS = 8.75;//cm
-	private static final double LS_DIFF = TRACK;
+	/**
+	 * Distance between the two light sensors
+	 */
+	private static final double LS_DIFF = 15;
+	/**
+	 * Number of color samples taken during light sensor initialization
+	 */
 	private static final int INITIALIZING_SCOPE = 25;
+	/**
+	 * Number of color samples taken during light localization
+	 */
 	private static final int MEASURING_SCOPE = 5;
+	/**
+	 * Numbers of degrees error after calculations to correct by during localization.
+	 */
 	private static final double ROTATION_ERROR = 10;
+	/**
+	 * Color intensity baseline for left localizing light sensor
+	 */
 	private float LINE_L;
+	/**
+	 * Color intensity baseline for right localizing light sensor
+	 */
 	private float LINE_R;
 	
 	//-----<Searching Coordinates and Starting Corner>-----//
+	/**
+	 * The corner the robot starts in {0 -> bottom left, 1 -> bottom right, 2 -> top right, 3 -> top left}
+	 */
 	private int START_CORNER = 0;// 0 -> down left, 1 -> down right, 2 -> up right, 3 -> up left
+	/**
+	 * The lower left corner of the table
+	 */
 	private int[] LL;
+	/**
+	 * The upper right corner of the table
+	 */
 	private int[] UR;
 		
 	//-----<Motor>-----//
@@ -53,11 +101,23 @@ public class Navigation {
 	public static EV3LargeRegulatedMotor RIGHT_MOTOR;
 	
 	//-----<Sensors>-----//
+	/**
+	 * Sensor poller for the left localizing light sensor; acts like a wrapper for the sensor itself
+	 */
 	private static SensorPoller LS_L = new LightSensorPoller("S2", TIME_INTERVAL, false);
+	/**
+	 * Sensor poller for the right localizing light sensor; acts like a wrapper for the sensor itself
+	 */
 	private static SensorPoller LS_R = new LightSensorPoller("S1", TIME_INTERVAL, false);
+	/**
+	 * Sensor poller for the ultrasonic sensor; acts like a wrapper for the sensor itself
+	 */
 	private static SensorPoller US = new UltrasonicSensorPoller("S3", TIME_INTERVAL);
 	
 	//-----<Position>-----//
+	/**
+	 * 
+	 */
 	private double[] position = new double[] {0,0,0};
 	
 	//-----<Nested MotorController>-----//
