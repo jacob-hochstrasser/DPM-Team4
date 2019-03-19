@@ -7,11 +7,13 @@ import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
 
+/**
+ * This class is the poller for light sensors.
+ * @author Pengnan Fan
+ */
+
 public class LightSensorPoller implements SensorPoller{
-	/**
-	 * This class is the poller for light sensors.
-	 * @author Pengnan Fan
-	 */
+
 	//-----<LightSensor>-----//
 	private Port lsPort;
 	private SensorModes lightSensor;
@@ -24,11 +26,16 @@ public class LightSensorPoller implements SensorPoller{
 	private float[] lsData = new float[1];
 	
 	/**
-	 * This is the constructor of a light sensor poller
+	 * This is the constructor of a light sensor poller.
 	 * 
-	 * @param port:String = port of the sensor
-	 * @param TIME_INTERVAL:int = Time interval between each measurement
-	 * @param isColorIdentification:boolean = True -> Color Identification mode; False -> Line Detection mode
+	 * @param port
+	 * This input suggests the string of the port of the sensor.
+	 *  
+	 * @param TIME_INTERVAL
+	 * This input suggests the int value for time interval between two measurements.
+	 * 
+	 * @param isColorIdentification
+	 * This input suggests the boolean value for if the sensor is set to be color detection mode.
 	 */
 	public LightSensorPoller(String port, int TIME_INTERVAL, boolean isColorIdentification) {
 		Sound.setVolume(100);
@@ -46,8 +53,11 @@ public class LightSensorPoller implements SensorPoller{
 	/**
 	 * This method returns the average measurement of the light sensor.
 	 * 
-	 * @param MEASURING_SCOPE:int = number of measurements
-	 * @return average measurement
+	 * @param MEASURING_SCOPE
+	 * This is a int value for the number of measurements for averaging.
+	 * 
+	 * @return 
+	 * This method returns the average result.
 	 */
 	@Override
 	public float getData(int MEASURING_SCOPE) {
@@ -68,7 +78,7 @@ public class LightSensorPoller implements SensorPoller{
 	}
 	
 	/**
-	 * This method immediately returns a measurement
+	 * This method returns the result for one measurement.
 	 */
 	@Override
 	public float getData() {

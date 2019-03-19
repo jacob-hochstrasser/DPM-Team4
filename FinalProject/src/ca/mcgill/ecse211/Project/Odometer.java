@@ -13,7 +13,7 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import java.lang.Math;
 
 /**
- * This class implements the Odometer for ECSE211 Lab 4 on the 
+ * This class implements the odometer on the 
  * Lego EV3 platform.
  * 
  *  @author Julie Bellia, Pengnan Fan
@@ -42,7 +42,7 @@ public class Odometer extends Thread {
   public Odometer() {}
   
   /**
-   *  run method (required for Thread)
+   *  This method runs the odometer.
    */
   public void run() {
     long updateStart, updateEnd;
@@ -91,8 +91,9 @@ public class Odometer extends Thread {
   }
   
   /**
-   * This method returns a double array of current positions
+   * This method returns a double array of current positions.
    * @return
+   * This methods returns a 3-element array of current X, Y, and orientation.
    */
   public static double[] getPosition() {
 	return position;
@@ -102,8 +103,9 @@ public class Odometer extends Thread {
   
   public static double getY() {return position[1];}
   /**
-   * This method returns the current angle data
+   * This method returns the current orientation.
    * @return
+   * This method returns a double value of the current theta.
    */
   public static double getT() {return position[2];}
   

@@ -7,11 +7,12 @@ import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
 
+/**
+ * This is the poller class for ultrasonic sensor.
+ * @author Pengnan Fan
+ */
+
 public class UltrasonicSensorPoller implements SensorPoller{
-	/**
-	 * This is the poller class for ultrasonic sensor
-	 * @author Pengnan Fan
-	 */
 	//-----<LightSensor>-----//
 	private Port usPort;
 	private SensorModes ultrasonicSensor;
@@ -28,8 +29,12 @@ public class UltrasonicSensorPoller implements SensorPoller{
 	/**
 	 * This is the constructor of an ultrasonic sensor poller
 	 * 
-	 * @param port:String = port of the sensor
-	 * @param TIME_INTERVAL:int = Time interval between each measurement
+	 * @param port
+	 * This input suggests the string of the port of the sensor.
+	 *  
+	 * @param TIME_INTERVAL
+	 * This input suggests the int value for time interval between two measurements.
+	 * 
 	 */
 	public UltrasonicSensorPoller(String port, int TIME_INTERVAL) {
 		Sound.setVolume(100);
@@ -42,8 +47,11 @@ public class UltrasonicSensorPoller implements SensorPoller{
 	/**
 	 * This method returns the average measurement of the ultrasonic sensor.
 	 * 
-	 * @param MEASURING_SCOPE:int = number of measurements
-	 * @return average measurement
+	 * @param MEASURING_SCOPE
+	 * This is a int value for the number of measurements for averaging.
+	 * 
+	 * @return 
+	 * This method returns the average result.
 	 */
 	@Override
 	public float getData(int MEASURING_SCOPE) {
@@ -60,7 +68,7 @@ public class UltrasonicSensorPoller implements SensorPoller{
 		return measure/MEASURING_SCOPE;
 	}
 	/**
-	 * This method immediately returns a measurement (with filter)
+	 * This method immediately returns one measurement (with filter).
 	 */
 	@Override
 	public float getData() {
