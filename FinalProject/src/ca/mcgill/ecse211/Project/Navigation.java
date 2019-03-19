@@ -32,9 +32,10 @@ public class Navigation {
 	 */
 	volatile private static int SPEED = 350;
 	/**
-	 * Time interval used for thread timing (in ms)
+	 * Time interval used for thread timing
 	 */
 	private static final int TIME_INTERVAL = 15;//ms
+	private static final int MEASURING_INTERVAL = 0;
 	/**
 	 * Size of floor tiles
 	 */
@@ -62,11 +63,14 @@ public class Navigation {
 	/**
 	 * Number of color samples taken during light localization
 	 */
-	private static final int MEASURING_SCOPE = 5;
+	private static final int MEASURING_SCOPE = 1;
 	/**
 	 * Numbers of degrees error after calculations to correct by during localization.
 	 */
 	private static final double ROTATION_ERROR = 10;
+	
+	private static final float CAN_DETECTION = 30;
+	
 	/**
 	 * Color intensity baseline for left localizing light sensor
 	 */
@@ -104,37 +108,35 @@ public class Navigation {
 	/**
 	 * Sensor poller for the left localizing light sensor; acts like a wrapper for the sensor itself
 	 */
-	private static SensorPoller LS_L = new LightSensorPoller("S2", TIME_INTERVAL, false);
+	private static SensorPoller LS_L = new LightSensorPoller("S2", MEASURING_INTERVAL, false);
 	/**
 	 * Sensor poller for the right localizing light sensor; acts like a wrapper for the sensor itself
 	 */
-	private static SensorPoller LS_R = new LightSensorPoller("S1", TIME_INTERVAL, false);
+	private static SensorPoller LS_R = new LightSensorPoller("S1", MEASURING_INTERVAL, false);
 	/**
 	 * Sensor poller for the ultrasonic sensor; acts like a wrapper for the sensor itself
 	 */
-	private static SensorPoller US = new UltrasonicSensorPoller("S3", TIME_INTERVAL);
+	private static SensorPoller US = new UltrasonicSensorPoller("S3", MEASURING_INTERVAL);
 	
 	//-----<Position>-----//
 	/**
-	 * The current position of the robot (in cm)
+	 * 
 	 */
 	private double[] position = new double[] {0,0,0};
 	
 	//-----<Nested MotorController>-----//
-	/**
-	 * The singleton occurrence of the navigation class
-	 */
 	private static Navigation NV;
-	/**
-	 * Enables printing of debugging statements
-	 */
+	
 	protected static final boolean DEBUG = true;
 	
 	/**
 	 * This is only for block testing
 	 */
 	void demo() {
-		localize();
+		LEFT_MOTOR.setSpeed(200);
+		RIGHT_MOTOR.setSpeed(200);
+		LEFT_MOTOR.backward();
+		RIGHT_MOTOR.forward();
 	}
 	
 	/**
@@ -181,9 +183,6 @@ public class Navigation {
 		initializeLightSensors();
 	}
 	
-	/**
-	 * Collects light samples before proceeding with program to establish a baseline.
-	 */
 	private void initializeLightSensors() {
 		float sum_left = 0;
 		float sum_right = 0;
@@ -195,12 +194,6 @@ public class Navigation {
 		LINE_R = sum_right/INITIALIZING_SCOPE;
 	}
 	
-	/**
-	 * Constructs a navigation object that controls the specified motors.
-	 * 
-	 * @param leftMotor the EV3 motor driving the left wheel
-	 * @param rightMotor the EV3 motor driving the right wheel
-	 */
 	private Navigation(String leftMotor, String rightMotor) {
 		LEFT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort(leftMotor));
 		RIGHT_MOTOR = new EV3LargeRegulatedMotor(LocalEV3.get().getPort(rightMotor));
@@ -209,13 +202,6 @@ public class Navigation {
 		initializeLightSensors();
 	}
 	
-	/**
-	 * Calculates the heading the robot must face to be facing the target point relative to its current position.
-	 * 
-	 * @param dX the x coordinate of the target point
-	 * @param dY the y coordinate of the target point
-	 * @return the target heading
-	 */
 	private double calculateTheta(double dX, double dY) {
 		double headingTheta = 0;
 		if(dX>0) {
@@ -281,12 +267,98 @@ public class Navigation {
     }
 	
 	/**
-     * This method drives the robot to a given coordinates in the unit of a tile size.
-     * @param coords
-     * This input is a 2-element array for the coodinates in the unit of a tile size.
-     */
-	public void travelTo(double[] coords) {
-	    travelTo(coords[0], coords[1]);
+	 * This method drives the robot alone with the rows. It will search for any can it finds.
+	 */
+	public void search() {
+		int n_col = UR[0] - LL[0];
+		int n_row = UR[1] - LL[1];
+		for(int row = 0; row<n_row; row++) {
+			if(row%2==0) {
+				// going from LL[0] to UR[0]
+				for(int col = 0; col<n_col; col++) {
+					position = Odometer.getPosition();
+					float can_dis = US.getData(); 
+					while(!isReached(col+LL[0], row+LL[1])) {
+						turnTo(calculateTheta((row+LL[1])*TILE_SIZE - position[0], (col+LL[0])*TILE_SIZE - position[1]));
+						LEFT_MOTOR.forward();
+						RIGHT_MOTOR.forward();
+						if (can_dis < CAN_DETECTION) {
+							stop();
+							turnLeft(180);
+							moveBackward(CAN_DETECTION);
+							// Start measuring color
+							
+							moveForward(CAN_DETECTION);
+							turnLeft(180);
+						}
+						
+					}
+					stop();
+				}
+				// move one row above
+				position = Odometer.getPosition();
+				float can_dis = US.getData();
+				while(!isReached(UR[0], row+LL[1]+1)) {
+					turnTo(calculateTheta(UR[0]*TILE_SIZE - position[0], (row+LL[1])*TILE_SIZE - position[1]));
+					LEFT_MOTOR.forward();
+					RIGHT_MOTOR.forward();
+					if (can_dis < CAN_DETECTION) {
+						stop();
+						turnLeft(180);
+						moveBackward(CAN_DETECTION);
+						// Start measuring color
+						
+						moveForward(CAN_DETECTION);
+						turnLeft(180);
+					}
+				}
+			} else {
+				// going from UR[0] to LL[0]
+				for(int col = n_col; col>=0; col--) {
+					position = Odometer.getPosition();
+					float can_dis = US.getData();
+					while(!isReached(col+LL[0], row+LL[1])) {
+						turnTo(calculateTheta((row+LL[1])*TILE_SIZE - position[0], (col+LL[0])*TILE_SIZE - position[1]));
+						LEFT_MOTOR.forward();
+						RIGHT_MOTOR.forward();
+						if (can_dis < CAN_DETECTION) {
+							stop();
+							turnLeft(180);
+							moveBackward(CAN_DETECTION);
+							// Start measuring color
+							
+							moveForward(CAN_DETECTION);
+							turnLeft(180);
+						}
+						
+					}
+					stop();
+				}
+				position = Odometer.getPosition();
+				float can_dis = US.getData();
+				while(!isReached(UR[0], row+LL[1]+1)) {
+					turnTo(calculateTheta(LL[0]*TILE_SIZE - position[0], (row+LL[1])*TILE_SIZE - position[1]));
+					LEFT_MOTOR.forward();
+					RIGHT_MOTOR.forward();
+					if (can_dis < CAN_DETECTION) {
+						stop();
+						turnLeft(180);
+						moveBackward(CAN_DETECTION);
+						// Start measuring color
+						
+						moveForward(CAN_DETECTION);
+						turnLeft(180);
+					}
+				}
+				stop();
+			}
+			
+		}
+	}
+	
+	private boolean isReached(double x, double y) {
+		position = Odometer.getPosition();
+		return position[0]==(x*TILE_SIZE)&&position[1]==(y*TILE_SIZE);
 	}
 	
 	/**
@@ -344,19 +416,11 @@ public class Navigation {
 		RIGHT_MOTOR.setAcceleration(ACCELERATION);
 	}
 	
-	/**
-	 * Determines whether the left localizing light sensor detected a gridline
-	 * @return if a gridline was detected
-	 */
 	private boolean detectLineLeft() {
 		float leftData = LS_L.getData(MEASURING_SCOPE);
 		return 1.15 < leftData/LINE_L || 0.85 > leftData/LINE_L;
 	}
 	
-	/**
-     * Determines whether the right localizing light sensor detected a gridline
-     * @return if a gridline was detected
-     */
 	private boolean detectLineRight() {
 		float rightData = LS_R.getData(MEASURING_SCOPE);
 		return 1.15 < rightData/LINE_R || 0.85 > rightData/LINE_R;
@@ -512,7 +576,7 @@ public class Navigation {
 		    //Sound.beep();
 		    stop();
 		    
-		    // Calculate angle of local maximum based on two detected edges and use it to find 0째 
+		    // Calculate angle of local maximum based on two detected edges and use it to find 0� 
 		    double dTheta = (-225 - 90 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
@@ -661,7 +725,7 @@ public class Navigation {
 		    //Sound.beep();
 		    stop();
 		    
-		    // Calculate angle of local maximum based on two detected edges and use it to find 0째 
+		    // Calculate angle of local maximum based on two detected edges and use it to find 0� 
 		    double dTheta = (-225 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
@@ -803,7 +867,7 @@ public class Navigation {
 		    //Sound.beep();
 		    stop();
 		    
-		    // Calculate angle of local maximum based on two detected edges and use it to find 0째 
+		    // Calculate angle of local maximum based on two detected edges and use it to find 0� 
 		    double dTheta = (-225 - 90 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
@@ -945,7 +1009,7 @@ public class Navigation {
 		    //Sound.beep();
 		    stop();
 		    
-		    // Calculate angle of local maximum based on two detected edges and use it to find 0째 
+		    // Calculate angle of local maximum based on two detected edges and use it to find 0� 
 		    double dTheta = (-225 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
@@ -1157,18 +1221,7 @@ public class Navigation {
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 	}
 	
-	/**
-	 * Converts the given heading change into the required rotation of the driving motors.
-	 * 
-	 * @param angle the desired change in heading
-	 * @return the required rotation of the driving motors in degrees
-	 */
 	private int convertAngle(double angle) {return convertDistance(Math.PI * TRACK * angle / 360.0);}
 	  
-	/**
-	 * Converts the given linear distance the robot must travel into the required rotation of the driving motors.
-	 * @param distance the distance the robot is to move
-	 * @return the required rotation of the driving motors in degrees
-	 */
 	private int convertDistance(double distance) {return (int) ((180.0 * distance) / (Math.PI * RADIUS));}
 }
