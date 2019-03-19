@@ -1,5 +1,6 @@
 package ca.mcgill.ecse211.Project;
 
+import lejos.hardware.Button;
 import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.port.Port;
@@ -40,7 +41,16 @@ public class UltrasonicSensorPoller implements SensorPoller{
 		Sound.setVolume(100);
 		this.TIME_INTERVAL = TIME_INTERVAL;
 		usPort = LocalEV3.get().getPort(port);
-		ultrasonicSensor = new EV3UltrasonicSensor(usPort);
+		while(ultrasonicSensor == null) {
+		    try {
+		        ultrasonicSensor = new EV3UltrasonicSensor(usPort);
+		    } catch(IllegalArgumentException e) {
+		        Sound.beep();
+		        System.out.println(e.getMessage());
+		        Button.waitForAnyPress();
+		    }
+		}
+		
 		ultrasonic = ultrasonicSensor.getMode("Distance");
 	}
 	

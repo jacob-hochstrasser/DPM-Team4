@@ -4,6 +4,7 @@ import java.text.DecimalFormat;
 import java.util.Map;
 import ca.mcgill.ecse211.WiFiClient.WifiConnection;
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
@@ -81,48 +82,60 @@ public class BetaDemoApplication {
         if(DEBUG) {
             System.out.println("" + DF.format(Odometer.getX()) + ", " + DF.format(Odometer.getY()) + "," + DF.format(Odometer.getT()));
             if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-            System.out.println("Travelling to tunnel");
         }
-        NAV.travelTo(tunnelLeft);
+        
+        
+        NAV.travelTo(tunnelLeft); 
         if(DEBUG) {
             System.out.println("Tunnel reached");
             System.out.println("" + DF.format(Odometer.getX()) + ", " + DF.format(Odometer.getY()) + "," + DF.format(Odometer.getT()));
             if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
         }
-        //NAV.travelTo(tunnel_ll[0], tunnel_ll[1] + (tunnel_ur[1] - tunnel_ll[1])/2);
-        //        if(DEBUG) {
-        //            System.out.println("Ready to travel through tunnel");
-        //            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-        //            System.out.println("Travelling through tunnel");
-        //        }
-        //        NAV.travelTo(tunnel_ur[0], tunnel_ur[1] - (tunnel_ur[1] - tunnel_ll[1]/2));
-        NAV.setSpeed(800);
+        
+        
+        int speed = NAV.getSpeed();
+        NAV.setSpeed(Math.min(4 * speed, 800));
         NAV.travelTo(tunnelRight);
         if(DEBUG) {
-            System.out.println("Reached island");
+            System.out.println("Island reached");
             if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-            System.out.println("Travelling to search zone");
         }
-        NAV.setSpeed(400);
-        NAV.travelTo(sz_ll);
+        NAV.setSpeed(speed);
+        
+        NAV.reLocalize();
+        Odometer.setX(tunnelRight[0]);
+        Odometer.setY(tunnelLeft[1]);
         if(DEBUG) {
-            System.out.println("Search zone reached");
+            System.out.println("Relocalized");
             if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-            System.out.println("Travelling to finish");
         }
+        
+        
+        NAV.travelTo(sz_ll);
         try {
             Thread.sleep(1000);
-            LocalEV3.get().getAudio().systemSound(3);
+            Sound.beep();
+            Sound.beep();
+            Sound.beep();
+            Sound.beep();
+            Sound.beep();
         } catch(InterruptedException e) {
             
         }
+        if(DEBUG) {
+            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+        }
+        
         
         //perform search for can
+        
+        
         NAV.travelTo(sz_ur);
-        LocalEV3.get().getAudio().systemSound(3);
-        if(DEBUG) {
-            System.out.println("Finished");
-        }
+        Sound.beep();
+        Sound.beep();
+        Sound.beep();
+        Sound.beep();
+        Sound.beep();
     }
 
 }

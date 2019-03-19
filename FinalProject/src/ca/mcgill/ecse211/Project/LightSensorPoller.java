@@ -1,5 +1,6 @@
 package ca.mcgill.ecse211.Project;
 
+import lejos.hardware.Button;
 import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.port.Port;
@@ -43,9 +44,26 @@ public class LightSensorPoller implements SensorPoller{
 		lsPort = LocalEV3.get().getPort(port);
 		lightSensor = new EV3ColorSensor(lsPort);
 		if (isColorIdentification) {
-			light = ((EV3ColorSensor)lightSensor).getRGBMode();
+		    while(light == null) {
+		        try {
+		            light = ((EV3ColorSensor)lightSensor).getRGBMode();
+		        } catch(IllegalArgumentException e) {
+		            Sound.beep();
+		            System.out.println(e.getMessage());
+		            Button.waitForAnyPress();
+		        }
+		    }
+			
 		} else {
-			light = ((EV3ColorSensor)lightSensor).getRedMode();
+		    while(light == null) {
+                try {
+                    light = ((EV3ColorSensor)lightSensor).getRedMode();
+                } catch(IllegalArgumentException e) {
+                    Sound.beep();
+                    System.out.println(e.getMessage());
+                    Button.waitForAnyPress();
+                }
+            }
 		}
 		try {Thread.sleep(500);} catch (InterruptedException e) {}
 	}
