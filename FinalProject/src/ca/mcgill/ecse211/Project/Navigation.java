@@ -13,7 +13,13 @@ public class Navigation {
 	 */
 	
 	//-----<Important Constant>-----//
+	/**
+	 * This parameter stands for the radius of wheels.
+	 */
 	public static final double RADIUS = 1.6;//cm. It is certifed by testing from Pengnan.
+	/**
+	 * This parameter stands for the distances between two tracks.
+	 */
 	public static final double TRACK = 24.5;//cm. It is certified by testing from Pengnan.
 	volatile private static int ACCELERATION = 1200;
 	volatile private static int SPEED = 500;
@@ -35,7 +41,13 @@ public class Navigation {
 	private int[] UR;
 		
 	//-----<Motor>-----//
+	/**
+	 * This object stands for the left motor.
+	 */
 	public static EV3LargeRegulatedMotor LEFT_MOTOR;
+	/**
+	 * This object stands for the right motor.
+	 */
 	public static EV3LargeRegulatedMotor RIGHT_MOTOR;
 	
 	//-----<Sensors>-----//
@@ -49,24 +61,26 @@ public class Navigation {
 	//-----<Nested MotorController>-----//
 	private static Navigation NV;
 	
-	public void demo() {
+	/**
+	 * This is only for block testing
+	 */
+	void demo() {
 		localize();
 	}
 	
 	/**
-	 * @author Pengnan Fan
 	 * 
-	 * This is a static method used to get a Navigation object.
+	 * This method is used to get a Navigation object. 
 	 * Note: Only one of this type of object can be accessed.
+	 *
+	 * @param leftMotor
+	 * This input indicates the string of the port used for left motor.
 	 * 
-	 * @param leftMotor:String
-	 * This input shows the port used for left motor.
+	 * @param rightMotor
+	 * This input indicates the string of the port used for right motor.
 	 * 
-	 * @param rightMotor:String
-	 * This input shows the port used for right motor.
-	 * 
-	 * @return NV:Navigation
-	 * This output is the Navigation nested in the class.
+	 * @return 
+	 * This method returns a Navigation object nested in the class.
 	 * 
 	 */
 	public static Navigation getNavigation(String leftMotor, String rightMotor) {
@@ -77,15 +91,13 @@ public class Navigation {
 	}
 	
 	/**
-	 * @author Pengnan Fan
+	 * This method sets up the searching range and the starting corner.
 	 * 
-	 * This method sets up searching range and starting corner
+	 * @param LL
+	 * This input is a 2-element array indicating the lower left coordinates of the searching range
 	 * 
-	 * @param LL:int array
-	 * This input suggests the lower left coordinates of the searching range
-	 * 
-	 * @param UR:int array
-	 * This input suggests the upper right coordinates of the searching range
+	 * @param UR
+	 * This input is a 2-element array indicating the upper right coordinates of the searching range
 	 * 
 	 * @param START_CORNER
 	 * This input suggests the starting corner
@@ -147,12 +159,12 @@ public class Navigation {
 	}
 	
 	/**
-	 * @author Pengnan Fan
+	 * This method drives the robot to a given coordinates in the unit of a tile size.
 	 * 
-	 * This drives the robot to a given coordinates
-	 * 
-	 * @param x: in the unit of tile size
-	 * @param y: in the unit of tile size
+	 * @param x
+	 * This input indicates the x coordinate in the unit of a tile size.
+	 * @param y
+	 * This input indicates the y coordinate in the unit of a tile size
 	 */
 	public void travelTo(double x, double y) {
 		x*=TILE_SIZE;
@@ -169,30 +181,21 @@ public class Navigation {
 	    //Sound.beep();
 	}
 	
+	/**
+	 * This method drives the robot to a given coordinates in the unit of a tile size.
+	 * @param coords
+	 * This input is a 2-element array for the coodinates in the unit of a tile size.
+	 */
 	public void travelTo(int[] coords) {
-	    double x = coords[0];
-	    double y = coords[1];
-        x*=TILE_SIZE;
-        y*=TILE_SIZE;
-        double dX = x - position[0];
-        double dY = y - position[1];
-        
-        turnTo(calculateTheta(dX, dY));
-        
-        double distance = Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
-        
-        moveForward(distance);
-
+	    travelTo(coords[0], coords[1]);
         //Sound.beep();
     }
 	
 	/**
-	 * @author Pengnan Fan
+	 * This method resets the acceleration and re-initializes the motor with the new acceleration.
 	 * 
-	 * This method reset the acceleration and re-initialize the motor.
-	 * 
-	 * @param newAcceleration:int
-	 * This input is the new acceleration.
+	 * @param newAcceleration
+	 * This input is an int for the new acceleration.
 	 * 
 	 */
 	public void setAcceleration(int newAcceleration) {
@@ -201,12 +204,11 @@ public class Navigation {
 	}
 	
 	/**
-	 * @author Pengnan Fan
 	 * 
-	 * This method reset the speed and re-initialize the motor.
+	 * This method resets the speed and re-initializes the motor with the new speed.
 	 * 
 	 * @param newSpeed:int
-	 * This input is the new speed.
+	 * This input is an int for the new speed.
 	 * 
 	 */
 	public void setSpeed(int newSpeed) {
@@ -215,9 +217,8 @@ public class Navigation {
 	}
 	
 	/**
-	 * @author Pengnan Fan
 	 * 
-	 * This method initialize the speed of motors.
+	 * This method initializes the motors with the current speed.
 	 * 
 	 */
 	public void initializeSpeed() {
@@ -228,9 +229,8 @@ public class Navigation {
 	}
 
 	/**
-	 * @author Pengnan Fan
 	 * 
-	 * This method initialize the acceleration of motors.
+	 * This method initializes the motors with the current acceleration.
 	 * 
 	 */
 	public void initializeAcceleration() {
@@ -250,6 +250,93 @@ public class Navigation {
 		return 1.15 < rightData/LINE_R || 0.85 > rightData/LINE_R;
 	}
 
+	/**
+	 * 
+	 * This method re-localizes the robot with light sensors during the navigation. 
+	 * 
+	 */
+	public void reLocalize() {
+		boolean left = false;
+	    boolean right = false;
+	    double leftDetection = 0;
+	    double rightDetection = 0;
+	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	    LEFT_MOTOR.forward();
+	    RIGHT_MOTOR.forward();
+	    do {
+		    if(detectLineLeft()&&!left) {
+		    	left = true;
+		    	leftDetection = LEFT_MOTOR.getTachoCount();
+		    	Sound.beep();
+		    	if(right) {
+		    		stop();
+		    	}
+		    }
+		    if(detectLineRight()&&!right) {
+		    	right = true;
+		    	rightDetection = LEFT_MOTOR.getTachoCount();
+		    	Sound.beep();
+		    	if(left) {
+		    		stop();
+		    	}
+		    }
+	    } while(!left||!right);
+	    //stop();
+	    
+	    
+	    double diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+	    double dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+	    
+	    turnLeft(dTheta);
+	    //turnRight(ROTATION_ERROR_CCW);
+	    
+	    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), true);
+		RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
+		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		
+		turnRight(90);
+		
+		left = false;
+	    right = false;
+	    leftDetection = 0;
+	    rightDetection = 0;
+	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	    LEFT_MOTOR.forward();
+	    RIGHT_MOTOR.forward();
+	    do {
+		    if(detectLineLeft()&&!left) {
+		    	left = true;
+		    	leftDetection = LEFT_MOTOR.getTachoCount();
+		    	Sound.beep();
+		    	if(right) {
+		    		stop();
+		    	}
+		    }
+		    if(detectLineRight()&&!right) {
+		    	right = true;
+		    	rightDetection = LEFT_MOTOR.getTachoCount();
+		    	Sound.beep();
+		    	if(left) {
+		    		stop();
+		    	}
+		    }
+	    } while(!left||!right);
+	    //stop();
+	    
+	    
+	    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+	    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+	    
+	    turnLeft(dTheta);
+	    //turnRight(ROTATION_ERROR_CCW);
+	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), true);
+		RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
+		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	    
+		turnLeft(90);
+		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	}
 	
 	public void localize() {
 		
