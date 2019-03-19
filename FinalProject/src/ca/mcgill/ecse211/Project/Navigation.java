@@ -4,13 +4,14 @@ import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
+/** 
+ * This is a class that controls the movements of the Lego EV3 robot.
+ * 
+ * @author Pengnan Fan
+ *
+ */
+
 public class Navigation {
-	/** 
-	 * This is a class that controlls motors. Many of the movements could be find here.
-	 * 
-	 * @author Pengnan Fan
-	 *
-	 */
 	
 	//-----<Important Constant>-----//
 	/**
@@ -222,10 +223,8 @@ public class Navigation {
 	 * 
 	 */
 	public void initializeSpeed() {
-		synchronized(EV3LargeRegulatedMotor.class) {
-			LEFT_MOTOR.setSpeed(SPEED);
-			RIGHT_MOTOR.setSpeed(SPEED);
-		}
+		LEFT_MOTOR.setSpeed(SPEED);
+		RIGHT_MOTOR.setSpeed(SPEED);
 	}
 
 	/**
@@ -234,10 +233,8 @@ public class Navigation {
 	 * 
 	 */
 	public void initializeAcceleration() {
-		synchronized(EV3LargeRegulatedMotor.class) {
-			LEFT_MOTOR.setAcceleration(ACCELERATION);
-			RIGHT_MOTOR.setAcceleration(ACCELERATION);
-		}
+		LEFT_MOTOR.setAcceleration(ACCELERATION);
+		RIGHT_MOTOR.setAcceleration(ACCELERATION);
 	}
 	
 	private boolean detectLineLeft() {
@@ -337,6 +334,12 @@ public class Navigation {
 		turnLeft(90);
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 	}
+	
+	/**
+	 * 
+	 * This method localizes the robot at the starting corner.
+	 * 
+	 */
 	
 	public void localize() {
 		
@@ -918,46 +921,45 @@ public class Navigation {
 	}
 	
 	/**
-	 * @author Pengnan Fan
 	 * 
-	 * This method drives the robot backward to a given distance. It will automatically call moveForward if the distance is negative
+	 * This method drives the robot backward to a given distance. It will automatically call moveForward if the distance is negative.
 	 * 
-	 * @param distance:int
-	 * This input shows how much the robot should move backward in centimeter.
+	 * @param distance
+	 * This input shows how much distance the robot should move backward in centimeter.
 	 * 
 	 */
 	public void moveBackward(double distance) {
 		if(distance<0) {moveForward(distance);}
-			
-		synchronized(EV3LargeRegulatedMotor.class) {
-			LEFT_MOTOR.rotate(-convertDistance(distance), true);
-			RIGHT_MOTOR.rotate(-convertDistance(distance), false);
-		}
+		LEFT_MOTOR.rotate(-convertDistance(distance), true);
+		RIGHT_MOTOR.rotate(-convertDistance(distance), false);
 			
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 	}
 	
 	/**
-	 * @author Pengnan Fan
-	 * 
 	 * This method drives the robot forward to a given distance. It will automatically call moveBackward if the distance is negative.
 	 * 
 	 * @param distance:int
-	 * This input shows how much the robot should move forward in centimeter.
+	 * This input shows how much distance the robot should move forward in centimeter.
 	 * 
 	 */
 	public void moveForward(double distance) {
 		if(distance<0) {moveBackward(distance);}
 		
-		synchronized(EV3LargeRegulatedMotor.class) {
-			LEFT_MOTOR.rotate(convertDistance(distance), true);
-			RIGHT_MOTOR.rotate(convertDistance(distance), false);
-		}
+		LEFT_MOTOR.rotate(convertDistance(distance), true);
+		RIGHT_MOTOR.rotate(convertDistance(distance), false);
 		
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 	}
 	
-	private void turnTo(double Theta) {// Theta is in the range of [0, 359.9]
+	/**
+	 * This method turns the robot to the given direction in degrees.
+	 * 
+	 * @param Theta
+	 * This input indicates which direction should the robot turn to in degrees.
+	 */
+	
+	public void turnTo(double Theta) {// Theta is in the range of [0, 359.9]
 		stop();
 		double[] pos = Odometer.getPosition();
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {};
@@ -980,7 +982,6 @@ public class Navigation {
 	}
 	
 	/**
-	 * @author Pengnan Fan
 	 * 
 	 * This method turns the robot clockwise to a given degree. It will automatically call turnRight if the input degree is negative.
 	 * 
@@ -992,18 +993,14 @@ public class Navigation {
 		if (dTheta<0) {
 			turnRight(-dTheta);
 		} else {
-			synchronized(EV3LargeRegulatedMotor.class) {
-				LEFT_MOTOR.rotate(-convertAngle(dTheta), true);
-			    RIGHT_MOTOR.rotate(convertAngle(dTheta), false);
-			}
+			LEFT_MOTOR.rotate(-convertAngle(dTheta), true);
+			RIGHT_MOTOR.rotate(convertAngle(dTheta), false);
 		}
 		
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 	}
 	
 	/**
-	 * @author Pengnan Fan
-	 * 
 	 * This method turns the robot counter clockwise to a given degree. It will automatically call turnLeft if the input degree is negative.
 	 * 
 	 * @param dTheta
@@ -1014,25 +1011,20 @@ public class Navigation {
 		if (dTheta<0) {
 		    turnLeft(-dTheta);
 		} else {
-			synchronized(EV3LargeRegulatedMotor.class) {
-				LEFT_MOTOR.rotate(convertAngle(dTheta), true);
-			    RIGHT_MOTOR.rotate(-convertAngle(dTheta), false);
-			}
+			LEFT_MOTOR.rotate(convertAngle(dTheta), true);
+			RIGHT_MOTOR.rotate(-convertAngle(dTheta), false);
 		}
 		
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 	}
 	
 	/**
-	 * @author Pengnan Fan
 	 * 
 	 * This method will stop the robot immediately.
 	 */
 	public void stop() {
-		synchronized(EV3LargeRegulatedMotor.class) {
-			LEFT_MOTOR.stop(true);
-			RIGHT_MOTOR.stop(false);
-		}
+		LEFT_MOTOR.stop(true);
+		RIGHT_MOTOR.stop(false);
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 	}
 	
