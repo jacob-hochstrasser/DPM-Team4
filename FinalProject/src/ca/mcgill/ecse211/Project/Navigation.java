@@ -290,12 +290,16 @@ public class Navigation {
 						turnTo(calculateTheta((row+LL[1])*TILE_SIZE - position[0], (col+LL[0])*TILE_SIZE - position[1]));
 						LEFT_MOTOR.forward();
 						RIGHT_MOTOR.forward();
-						if (can_dis < CAN_DETECTION) {
+						if (can_dis < CAN_DETECTION&&!foundCan) {
 							stop();
 							turnLeft(180);
 							moveBackward(CAN_DETECTION);
 							//TODO Start measuring color
 							foundCan = ID.isTargetCan();
+							if (foundCan) {
+								travelTo(UR[0], UR[1]);
+								return;
+							}
 							moveForward(CAN_DETECTION);
 							turnLeft(180);
 						}
@@ -310,12 +314,16 @@ public class Navigation {
 					turnTo(calculateTheta(UR[0]*TILE_SIZE - position[0], (row+LL[1])*TILE_SIZE - position[1]));
 					LEFT_MOTOR.forward();
 					RIGHT_MOTOR.forward();
-					if (can_dis < CAN_DETECTION) {
+					if (can_dis < CAN_DETECTION&&!foundCan) {
 						stop();
 						turnLeft(180);
 						moveBackward(CAN_DETECTION);
 						//TODO Start measuring color
 						foundCan = ID.isTargetCan();
+						if (foundCan) {
+							travelTo(UR[0], UR[1]);
+							return;
+						}
 						moveForward(CAN_DETECTION);
 						turnLeft(180);
 					}
@@ -329,12 +337,16 @@ public class Navigation {
 						turnTo(calculateTheta((row+LL[1])*TILE_SIZE - position[0], (col+LL[0])*TILE_SIZE - position[1]));
 						LEFT_MOTOR.forward();
 						RIGHT_MOTOR.forward();
-						if (can_dis < CAN_DETECTION) {
+						if (can_dis < CAN_DETECTION&&!foundCan) {
 							stop();
 							turnLeft(180);
 							moveBackward(CAN_DETECTION);
 							//TODO Start measuring color
 							foundCan = ID.isTargetCan();
+							if (foundCan) {
+								travelTo(UR[0], UR[1]);
+								return;
+							}
 							moveForward(CAN_DETECTION);
 							turnLeft(180);
 						}
@@ -348,12 +360,16 @@ public class Navigation {
 					turnTo(calculateTheta(LL[0]*TILE_SIZE - position[0], (row+LL[1])*TILE_SIZE - position[1]));
 					LEFT_MOTOR.forward();
 					RIGHT_MOTOR.forward();
-					if (can_dis < CAN_DETECTION) {
+					if (can_dis < CAN_DETECTION&&!foundCan) {
 						stop();
 						turnLeft(180);
 						moveBackward(CAN_DETECTION);
 						//TODO Start measuring color
 						foundCan = ID.isTargetCan();
+						if (foundCan) {
+							travelTo(UR[0], UR[1]);
+							return;
+						}
 						moveForward(CAN_DETECTION);
 						turnLeft(180);
 					}
