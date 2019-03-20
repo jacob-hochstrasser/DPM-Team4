@@ -283,16 +283,16 @@ public class Navigation {
 		for(int row = 0; row<n_row; row++) {
 			if(row%2==0) {
 				// going from LL[0] to UR[0]
-			    int col;
+			    int i;
 			    if(row == 0) {
-			        col = 1;
+			        i = 1;
 			    } else {
-			        col = 0;
+			        i = 0;
 			    }
-				for(col = col; col<n_col; col++) {
+				for(int col = i; col<n_col; col++) {
 					position = Odometer.getPosition();
 					if(DEBUG) {
-					    System.out.println(position.toString());   
+					    System.out.println(position[0] + ", " + position[1] + ", " + position[2]);   
 					}
 					float can_dis = US.getData(); 
 					while(!isReached(col+LL[0], row+LL[1])) {
@@ -392,8 +392,8 @@ public class Navigation {
 	private boolean isReached(double x, double y) {
 		position = Odometer.getPosition();
 		if(DEBUG) {
-		    System.out.println(position.toString());
-		}
+            System.out.println(position[0] + ", " + position[1] + ", " + position[2]);   
+        }
 		return position[0]==(x*TILE_SIZE)&&position[1]==(y*TILE_SIZE);
 	}
 	
@@ -1188,7 +1188,6 @@ public class Navigation {
 	 * @param Theta
 	 * This input indicates which direction should the robot turn to in degrees.
 	 */
-	
 	public void turnTo(double Theta) {// Theta is in the range of [0, 359.9]
 		stop();
 		double[] pos = Odometer.getPosition();
