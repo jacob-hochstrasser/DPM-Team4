@@ -134,7 +134,7 @@ public class Navigation {
 	
 	private boolean foundCan = false;
 	
-	protected static final boolean DEBUG = true;
+	protected static final boolean DEBUG = false;
 	
 	/**
 	 * This is only for block testing
@@ -286,21 +286,21 @@ public class Navigation {
 	 * This method drives the robot alone with the rows. It will search for any can it finds.
 	 */
 	public void search() {
-		LL = new int[]{0, 0};
-		UR = new int[]{3, 3};
+		//LL = new int[]{0, 0};
+		//UR = new int[]{3, 3};
 		int n_row = UR[1] - LL[1];
 		for(int row = 0; row<n_row; row++) {
 			if(row%2==0) {
 				// going from LL[0] to UR[0]
 				travelTo(UR[0], row+LL[1]);
 				stop();
-				Sound.beep();
+				//Sound.beep();
 				travelTo(UR[0], row+LL[1]+1);
 			} else if(row%2!=0) {
 				// going from UR[0] to LL[0]
 				travelTo(LL[0], row+LL[1]);
 				stop();
-				Sound.beep();
+				//Sound.beep();
 				travelTo(LL[0], row+LL[1]+1);
 			}
 			reLocalize();

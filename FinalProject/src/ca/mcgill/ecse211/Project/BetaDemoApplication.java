@@ -77,7 +77,7 @@ public class BetaDemoApplication {
     /**
      * Enables printing of statements during program execution for debugging
      */
-    protected static final boolean DEBUG = true;
+    protected static final boolean DEBUG = false;
 
     /**
      * Formats decimal values for printing debugging statements
@@ -127,12 +127,12 @@ public class BetaDemoApplication {
             sz_ur[0] = ((Long) data.get("SZR_UR_x")).intValue();
             sz_ur[1] = ((Long) data.get("SZR_UR_y")).intValue();
             startCorner = ((Long) data.get("RedCorner")).intValue();
-            targetColor = ((Long) data.get("GreenTeam")).intValue();
+            //targetColor = ((Long) data.get("GreenTeam")).intValue();
         } catch(Exception e) {
             System.err.println("Error: " + e.getMessage());
         }
 
-        //int targetColor = 1;
+        targetColor = 1;
         ID = new Identifier(SCANNER, targetColor, IDRGB, 1000, LCD);
 
         /*--- Offset coordinates of tunnel as navigation target (so robot doesn't hit the corner of it ---*/
@@ -141,54 +141,54 @@ public class BetaDemoApplication {
 
         ODO.start();
         NAV.setup(sz_ll, sz_ur, startCorner); // initialize values of lower left and upper right of table and start corner; initialize acceleration, speed, and light sensor baseline
-        //        NAV.localize();
-        //        if(DEBUG) {
-        //            System.out.println("" + DF.format(Odometer.getX()) + ", " + DF.format(Odometer.getY()) + "," + DF.format(Odometer.getT()));
-        //            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-        //        }
-        //
-        //
-        //        NAV.travelTo(tunnelLeft); 
-        //        if(DEBUG) {
-        //            System.out.println("Tunnel reached");
-        //            System.out.println("" + DF.format(Odometer.getX()) + ", " + DF.format(Odometer.getY()) + "," + DF.format(Odometer.getT()));
-        //            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-        //        }
-        //
-        //
-        //        int speed = NAV.getSpeed();
-        //        NAV.setSpeed(Math.min(4 * speed, 600));
-        //        NAV.travelTo(tunnelRight);
-        //        if(DEBUG) {
-        //            System.out.println("Island reached");
-        //            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-        //        }
-        //        NAV.setSpeed(speed);
-        //
-        //        NAV.reLocalize();
-        //        Odometer.setX(tunnelRight[0]);
-        //        Odometer.setY(tunnelLeft[1]);
-        //        if(DEBUG) {
-        //            System.out.println("Relocalized");
-        //            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-        //        }
-        //
-        //
-        //        NAV.travelTo(sz_ll);
-        //        NAV.reLocalize();
-        //        try {
-        //            Thread.sleep(1000);
-        //            Sound.beep();
-        //            Sound.beep();
-        //            Sound.beep();
-        //            Sound.beep();
-        //            Sound.beep();
-        //        } catch(InterruptedException e) {
-        //
-        //        }
-        //        if(DEBUG) {
-        //            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-        //        }
+        NAV.localize();
+        if(DEBUG) {
+            System.out.println("" + DF.format(Odometer.getX()) + ", " + DF.format(Odometer.getY()) + "," + DF.format(Odometer.getT()));
+            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+        }
+
+
+        NAV.travelTo(tunnelLeft); 
+        if(DEBUG) {
+            System.out.println("Tunnel reached");
+            System.out.println("" + DF.format(Odometer.getX()) + ", " + DF.format(Odometer.getY()) + "," + DF.format(Odometer.getT()));
+            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+        }
+
+
+        int speed = NAV.getSpeed();
+        NAV.setSpeed(Math.min(4 * speed, 800));
+        NAV.travelTo(tunnelRight);
+        if(DEBUG) {
+            System.out.println("Island reached");
+            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+        }
+        NAV.setSpeed(speed);
+
+        NAV.reLocalize();
+        Odometer.setX(tunnelRight[0]);
+        Odometer.setY(tunnelRight[1]);
+        if(DEBUG) {
+            System.out.println("Relocalized");
+            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+        }
+
+
+        NAV.travelTo(sz_ll);
+        NAV.reLocalize();
+        try {
+            Thread.sleep(1000);
+            Sound.beep();
+            Sound.beep();
+            Sound.beep();
+            Sound.beep();
+            Sound.beep();
+        } catch(InterruptedException e) {
+
+        }
+        if(DEBUG) {
+            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+        }
 
 
         //perform search for can
@@ -201,7 +201,7 @@ public class BetaDemoApplication {
         Sound.beep();
         Sound.beep();
 
-        //      int buttonChoice = 0;
+        //        int buttonChoice = 0;
         //        do {
         //            LCD.drawInt(targetColor, 0, 0);
         //            buttonChoice = Button.waitForAnyPress();
