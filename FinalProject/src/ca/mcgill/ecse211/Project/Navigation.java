@@ -270,6 +270,10 @@ public class Navigation {
         //Sound.beep();
     }
 	
+	public void travelTo(double[] coords) {
+	    travelTo(coords[0], coords[1]);
+	}
+	
 	/**
 	 * This method drives the robot alone with the rows. It will search for any can it finds.
 	 */
