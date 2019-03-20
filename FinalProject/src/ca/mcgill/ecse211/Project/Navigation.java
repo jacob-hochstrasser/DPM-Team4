@@ -18,11 +18,11 @@ public class Navigation {
 	/**
 	 * This parameter stands for the radius of wheels.
 	 */
-	public static final double RADIUS = 1.6;//cm. It is certifed by testing from Pengnan.
+	public static final double RADIUS = 1.415;//cm. It is certifed by testing from Pengnan.
 	/**
 	 * This parameter stands for the distances between two tracks.
 	 */
-	public static final double TRACK = 24.5;//cm. It is certified by testing from Pengnan.
+	public static final double TRACK = 20;//cm. It is certified by testing from Pengnan.
 	/**
 	 * Angular acceleration of the motors
 	 */
@@ -40,10 +40,13 @@ public class Navigation {
 	 * Size of floor tiles
 	 */
 	private static final double TILE_SIZE = 30.28;//cm
+	
+	private static final double FACTOR = 0.975;
+	
 	/**
 	 * Constant used to trigger falling edge detection
 	 */
-	private static final double EDGE_DISTANCE = 1.25*TILE_SIZE;
+	private static final double EDGE_DISTANCE = 1.5*TILE_SIZE;
 	/**
 	 * Margin used for noise handling during falling edge localization
 	 */
@@ -139,8 +142,13 @@ public class Navigation {
 	void demo() {
 		LEFT_MOTOR.setSpeed(200);
 		RIGHT_MOTOR.setSpeed(200);
-		LEFT_MOTOR.backward();
+		LEFT_MOTOR.forward();
 		RIGHT_MOTOR.forward();
+		while(!isReached(0, 1)) {
+			BetaDemoApplication.LCD.clear();
+			System.out.println(position[0] + " " + position[1]);
+		}
+		stop();
 	}
 	
 	/**
@@ -184,7 +192,7 @@ public class Navigation {
 		this.START_CORNER = START_CORNER;
 		initializeAcceleration();
 		initializeSpeed();
-		initializeLightSensors();
+		//initializeLightSensors();
 	}
 	
 	private void initializeLightSensors() {
@@ -278,6 +286,29 @@ public class Navigation {
 	 * This method drives the robot alone with the rows. It will search for any can it finds.
 	 */
 	public void search() {
+		LL = new int[]{0, 0};
+		UR = new int[]{3, 3};
+		int n_row = UR[1] - LL[1];
+		for(int row = 0; row<n_row; row++) {
+			if(row%2==0) {
+				// going from LL[0] to UR[0]
+				travelTo(UR[0], row+LL[1]);
+				stop();
+				Sound.beep();
+				travelTo(UR[0], row+LL[1]+1);
+			} else if(row%2!=0) {
+				// going from UR[0] to LL[0]
+				travelTo(LL[0], row+LL[1]);
+				stop();
+				Sound.beep();
+				travelTo(LL[0], row+LL[1]+1);
+			}
+			reLocalize();
+			
+		}
+		travelTo(UR);
+		Sound.twoBeeps();
+		/*
 		int n_col = UR[0] - LL[0];
 		int n_row = UR[1] - LL[1];
 		for(int row = 0; row<n_row; row++) {
@@ -303,7 +334,6 @@ public class Navigation {
 							stop();
 							turnLeft(180);
 							moveBackward(CAN_DETECTION);
-							//TODO Start measuring color
 							foundCan = ID.isTargetCan();
 							if (foundCan) {
 								travelTo(UR[0], UR[1]);
@@ -327,7 +357,6 @@ public class Navigation {
 						stop();
 						turnLeft(180);
 						moveBackward(CAN_DETECTION);
-						//TODO Start measuring color
 						foundCan = ID.isTargetCan();
 						if (foundCan) {
 							travelTo(UR[0], UR[1]);
@@ -350,7 +379,6 @@ public class Navigation {
 							stop();
 							turnLeft(180);
 							moveBackward(CAN_DETECTION);
-							//TODO Start measuring color
 							foundCan = ID.isTargetCan();
 							if (foundCan) {
 								travelTo(UR[0], UR[1]);
@@ -373,7 +401,6 @@ public class Navigation {
 						stop();
 						turnLeft(180);
 						moveBackward(CAN_DETECTION);
-						//TODO Start measuring color
 						foundCan = ID.isTargetCan();
 						if (foundCan) {
 							travelTo(UR[0], UR[1]);
@@ -387,6 +414,7 @@ public class Navigation {
 			}
 			
 		}
+		*/
 	}
 	
 	private boolean isReached(double x, double y) {
@@ -394,7 +422,7 @@ public class Navigation {
 		if(DEBUG) {
             System.out.println(position[0] + ", " + position[1] + ", " + position[2]);   
         }
-		return position[0]==(x*TILE_SIZE)&&position[1]==(y*TILE_SIZE);
+		return position[0]>=0.95*(x*TILE_SIZE)&&position[0]<=1.05*(x*TILE_SIZE)&&position[1]>=0.95*(y*TILE_SIZE)&&position[1]<=1.05*(y*TILE_SIZE);
 	}
 	
 	/**
@@ -439,7 +467,7 @@ public class Navigation {
 	 */
 	public void initializeSpeed() {
 		LEFT_MOTOR.setSpeed(SPEED);
-		RIGHT_MOTOR.setSpeed(SPEED);
+		RIGHT_MOTOR.setSpeed((int)(SPEED*FACTOR));
 	}
 
 	/**
@@ -481,7 +509,7 @@ public class Navigation {
 		    if(detectLineLeft()&&!left) {
 		    	left = true;
 		    	leftDetection = LEFT_MOTOR.getTachoCount();
-		    	Sound.beep();
+		    	//Sound.beep();
 		    	if(right) {
 		    		stop();
 		    	}
@@ -489,7 +517,7 @@ public class Navigation {
 		    if(detectLineRight()&&!right) {
 		    	right = true;
 		    	rightDetection = LEFT_MOTOR.getTachoCount();
-		    	Sound.beep();
+		    	//Sound.beep();
 		    	if(left) {
 		    		stop();
 		    	}
@@ -620,7 +648,7 @@ public class Navigation {
 		    //Turn to 0
 		    
 		    turnTo(dTheta);
-		    //turnRight(2 * ROTATION_ERROR);
+		    turnRight(ROTATION_ERROR);
 		    //turnRight(4.5 * ROTATION_ERROR);
 		    Odometer.resetTheta();//Reset theta
 		    if(DEBUG) {
@@ -631,6 +659,7 @@ public class Navigation {
 		    boolean right = false;
 		    double leftDetection = 0;
 		    double rightDetection = 0;
+		    int counter = 1;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    int speed = Navigation.SPEED;
 		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
@@ -645,13 +674,15 @@ public class Navigation {
 			    		stop();
 			    	}
 			    }
-			    if(detectLineRight()&&!right) {
+			    if(detectLineRight()&&!right&&counter==0) {
 			    	right = true;
 			    	rightDetection = LEFT_MOTOR.getTachoCount();
 			    	//Sound.beep();
 			    	if(left) {
 			    		stop();
 			    	}
+			    } else if(detectLineRight()&&!right&&counter==1) {
+			    	counter--;
 			    }
 		    } while(!left||!right);
 		    //stop();
@@ -708,7 +739,7 @@ public class Navigation {
 			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
-			turnLeft(90 + ROTATION_ERROR);
+			turnLeft(90);
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    Odometer.setX(TILE_SIZE);
 		    Odometer.setY(TILE_SIZE);
@@ -1161,7 +1192,7 @@ public class Navigation {
 	public void moveBackward(double distance) {
 		if(distance<0) {moveForward(distance);}
 		LEFT_MOTOR.rotate(-convertDistance(distance), true);
-		RIGHT_MOTOR.rotate(-convertDistance(distance), false);
+		RIGHT_MOTOR.rotate(-convertDistance(distance*FACTOR), false);
 			
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 	}
@@ -1177,7 +1208,7 @@ public class Navigation {
 		if(distance<0) {moveBackward(distance);}
 		
 		LEFT_MOTOR.rotate(convertDistance(distance), true);
-		RIGHT_MOTOR.rotate(convertDistance(distance), false);
+		RIGHT_MOTOR.rotate(convertDistance(distance*FACTOR), false);
 		
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 	}
