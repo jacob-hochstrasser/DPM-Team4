@@ -18,11 +18,11 @@ public class Navigation {
 	/**
 	 * This parameter stands for the radius of wheels.
 	 */
-	public static final double RADIUS = 1.6;//cm. It is certifed by testing from Pengnan.
+	public static final double RADIUS = 1.415;//cm. It is certifed by testing from Pengnan.
 	/**
 	 * This parameter stands for the distances between two tracks.
 	 */
-	public static final double TRACK = 24.5;//cm. It is certified by testing from Pengnan.
+	public static final double TRACK = 20;//cm. It is certified by testing from Pengnan.
 	/**
 	 * Angular acceleration of the motors
 	 */
@@ -40,6 +40,9 @@ public class Navigation {
 	 * Size of floor tiles
 	 */
 	private static final double TILE_SIZE = 30.28;//cm
+	
+	private static final double FACTOR = 0.975;
+	
 	/**
 	 * Constant used to trigger falling edge detection
 	 */
@@ -189,7 +192,7 @@ public class Navigation {
 		this.START_CORNER = START_CORNER;
 		initializeAcceleration();
 		initializeSpeed();
-		initializeLightSensors();
+		//initializeLightSensors();
 	}
 	
 	private void initializeLightSensors() {
@@ -468,7 +471,7 @@ public class Navigation {
 	 */
 	public void initializeSpeed() {
 		LEFT_MOTOR.setSpeed(SPEED);
-		RIGHT_MOTOR.setSpeed(SPEED);
+		RIGHT_MOTOR.setSpeed((int)(SPEED*FACTOR));
 	}
 
 	/**
@@ -510,7 +513,7 @@ public class Navigation {
 		    if(detectLineLeft()&&!left) {
 		    	left = true;
 		    	leftDetection = LEFT_MOTOR.getTachoCount();
-		    	Sound.beep();
+		    	//Sound.beep();
 		    	if(right) {
 		    		stop();
 		    	}
@@ -518,7 +521,7 @@ public class Navigation {
 		    if(detectLineRight()&&!right) {
 		    	right = true;
 		    	rightDetection = LEFT_MOTOR.getTachoCount();
-		    	Sound.beep();
+		    	//Sound.beep();
 		    	if(left) {
 		    		stop();
 		    	}
@@ -1193,7 +1196,7 @@ public class Navigation {
 	public void moveBackward(double distance) {
 		if(distance<0) {moveForward(distance);}
 		LEFT_MOTOR.rotate(-convertDistance(distance), true);
-		RIGHT_MOTOR.rotate(-convertDistance(distance), false);
+		RIGHT_MOTOR.rotate(-convertDistance(distance*FACTOR), false);
 			
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 	}
@@ -1209,7 +1212,7 @@ public class Navigation {
 		if(distance<0) {moveBackward(distance);}
 		
 		LEFT_MOTOR.rotate(convertDistance(distance), true);
-		RIGHT_MOTOR.rotate(convertDistance(distance), false);
+		RIGHT_MOTOR.rotate(convertDistance(distance*FACTOR), false);
 		
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 	}
