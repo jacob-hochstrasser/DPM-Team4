@@ -43,7 +43,7 @@ public class Navigation {
 	/**
 	 * Constant used to trigger falling edge detection
 	 */
-	private static final double EDGE_DISTANCE = 1.5*TILE_SIZE;
+	private static final double EDGE_DISTANCE = 1.25*TILE_SIZE;
 	/**
 	 * Margin used for noise handling during falling edge localization
 	 */
@@ -283,11 +283,20 @@ public class Navigation {
 		for(int row = 0; row<n_row; row++) {
 			if(row%2==0) {
 				// going from LL[0] to UR[0]
-				for(int col = 0; col<n_col; col++) {
+			    int col;
+			    if(row == 0) {
+			        col = 1;
+			    } else {
+			        col = 0;
+			    }
+				for(col = col; col<n_col; col++) {
 					position = Odometer.getPosition();
+					if(DEBUG) {
+					    System.out.println(position.toString());   
+					}
 					float can_dis = US.getData(); 
 					while(!isReached(col+LL[0], row+LL[1])) {
-						turnTo(calculateTheta((row+LL[1])*TILE_SIZE - position[0], (col+LL[0])*TILE_SIZE - position[1]));
+						turnTo(calculateTheta((col+LL[0])*TILE_SIZE - position[0], (row+LL[1])*TILE_SIZE - position[1]));
 						LEFT_MOTOR.forward();
 						RIGHT_MOTOR.forward();
 						if (can_dis < CAN_DETECTION&&!foundCan) {
@@ -328,13 +337,13 @@ public class Navigation {
 						turnLeft(180);
 					}
 				}
-			} else {
+			} else if(row%2!=0) {
 				// going from UR[0] to LL[0]
 				for(int col = n_col; col>=0; col--) {
 					position = Odometer.getPosition();
 					float can_dis = US.getData();
 					while(!isReached(col+LL[0], row+LL[1])) {
-						turnTo(calculateTheta((row+LL[1])*TILE_SIZE - position[0], (col+LL[0])*TILE_SIZE - position[1]));
+						turnTo(calculateTheta((col+LL[0])*TILE_SIZE - position[0], (row+LL[1])*TILE_SIZE - position[1]));
 						LEFT_MOTOR.forward();
 						RIGHT_MOTOR.forward();
 						if (can_dis < CAN_DETECTION&&!foundCan) {
@@ -356,7 +365,7 @@ public class Navigation {
 				}
 				position = Odometer.getPosition();
 				float can_dis = US.getData();
-				while(!isReached(UR[0], row+LL[1]+1)) {
+				while(!isReached(LL[0], row+LL[1]+1)) {
 					turnTo(calculateTheta(LL[0]*TILE_SIZE - position[0], (row+LL[1])*TILE_SIZE - position[1]));
 					LEFT_MOTOR.forward();
 					RIGHT_MOTOR.forward();
@@ -382,6 +391,9 @@ public class Navigation {
 	
 	private boolean isReached(double x, double y) {
 		position = Odometer.getPosition();
+		if(DEBUG) {
+		    System.out.println(position.toString());
+		}
 		return position[0]==(x*TILE_SIZE)&&position[1]==(y*TILE_SIZE);
 	}
 	
@@ -602,12 +614,13 @@ public class Navigation {
 		    
 		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
 		    double dTheta = (-225 - 90 + (pos1[2]+pos2[2])/2 + 360)%360;
+		    System.out.println(dTheta);
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
 		    //Turn to 0
 		    
 		    turnTo(dTheta);
-		    turnRight(2 * ROTATION_ERROR);
+		    //turnRight(2 * ROTATION_ERROR);
 		    //turnRight(4.5 * ROTATION_ERROR);
 		    Odometer.resetTheta();//Reset theta
 		    if(DEBUG) {

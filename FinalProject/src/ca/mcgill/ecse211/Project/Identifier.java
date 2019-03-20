@@ -94,14 +94,14 @@ public class Identifier {
      */
     private static final float[][] LI_REFERENCE_MEANS =
         {{0.25196862f, 0.29015315f, 0.14226039f}, {0.18914916f, 0.4638317f, 0.033236276f}, 
-            {0.72614944f, 0.1204941f, 0.026043372f}, {0.92697716f, 0.050970152f, 0.024029283f}};
+            {0.8633784f, 0.054316904f, 0.011821673f}, {0.92697716f, 0.050970152f, 0.024029283f}}; // Y  {0.72614944f, 0.1204941f, 0.026043372f}
     
     /**
      * Standard deviation of RGB samples of four can colors
      */
     private static final float[][] LI_REFERENCE_SDS = 
         {{0.03463795f, 0.04026307f, 0.0149934925f}, {0.042265132f, 0.072264396f, 0.006848849f}, 
-            {0.03653974f, 0.026533125f, 0.016543025f}, {0.04179209f, 0.023005877f, 0.011273368f}};
+            {0.02798699f, 0.023513217f, 0.0053855744f}, {0.04179209f, 0.023005877f, 0.011273368f}}; // Y {0.03653974f, 0.026533125f, 0.016543025f}
     
     /**
      * Scanning motor angular acceleration
@@ -121,12 +121,12 @@ public class Identifier {
     /**
      * The target color being searched for
      */
-    private final TARGET_COLOR target;
+    private TARGET_COLOR target;
     
     /**
      * Integer representation of the target color
      */
-    private final int targetInt;
+    private int targetInt;
     
     /**
      * Sample provider for the color sensor
@@ -275,6 +275,12 @@ public class Identifier {
         }
     }
 
+    public void setTargetColor(int newTarget) {
+        if(!isSampling) {
+            this.target = TARGET_COLOR.decodeValue(newTarget);
+            this.targetInt = newTarget;
+        }
+    }
 
     /**
      * Changes the number of samples taken during scanning. Can only happen if a scan is not already in progress.
