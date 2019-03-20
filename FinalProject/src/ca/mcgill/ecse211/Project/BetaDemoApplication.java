@@ -72,7 +72,7 @@ public class BetaDemoApplication {
     /**
      * The identifier class that handles can color identification
      */
-    private static Identifier ID;
+    public static Identifier ID;
     
     /**
      * Enables printing of statements during program execution for debugging

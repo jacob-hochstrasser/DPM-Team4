@@ -127,6 +127,10 @@ public class Navigation {
 	//-----<Nested MotorController>-----//
 	private static Navigation NV;
 	
+	private static Identifier ID = BetaDemoApplication.ID;
+	
+	private boolean foundCan = false;
+	
 	protected static final boolean DEBUG = true;
 	
 	/**
@@ -286,8 +290,8 @@ public class Navigation {
 							stop();
 							turnLeft(180);
 							moveBackward(CAN_DETECTION);
-							// Start measuring color
-							
+							//TODO Start measuring color
+							foundCan = ID.isTargetCan();
 							moveForward(CAN_DETECTION);
 							turnLeft(180);
 						}
@@ -306,8 +310,8 @@ public class Navigation {
 						stop();
 						turnLeft(180);
 						moveBackward(CAN_DETECTION);
-						// Start measuring color
-						
+						//TODO Start measuring color
+						foundCan = ID.isTargetCan();
 						moveForward(CAN_DETECTION);
 						turnLeft(180);
 					}
@@ -325,8 +329,8 @@ public class Navigation {
 							stop();
 							turnLeft(180);
 							moveBackward(CAN_DETECTION);
-							// Start measuring color
-							
+							//TODO Start measuring color
+							foundCan = ID.isTargetCan();
 							moveForward(CAN_DETECTION);
 							turnLeft(180);
 						}
@@ -344,8 +348,8 @@ public class Navigation {
 						stop();
 						turnLeft(180);
 						moveBackward(CAN_DETECTION);
-						// Start measuring color
-						
+						//TODO Start measuring color
+						foundCan = ID.isTargetCan();
 						moveForward(CAN_DETECTION);
 						turnLeft(180);
 					}
