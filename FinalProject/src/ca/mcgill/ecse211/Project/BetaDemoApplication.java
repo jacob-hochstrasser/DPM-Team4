@@ -47,7 +47,7 @@ public class BetaDemoApplication {
     /**
      * The text LCD of the containing EV3 brick
      */
-    private static final TextLCD LCD = LocalEV3.get().getTextLCD();
+    public static final TextLCD LCD = LocalEV3.get().getTextLCD();
 
     /**
      * String identifying the port of the left motor
