@@ -1,6 +1,6 @@
 DPM-Team4
 =========
-###### Questions? Contact Jacob or [Pengnan](https://github.com/Catosine)  
+###### Questions? Contact [Jacob](https://github.com/jacob-hochstrasser) or [Pengnan](https://github.com/Catosine)  
 Setting up GitHub
 -----------------
 To contribute to code for this project, you'll need to set up a GitHub account and join this repository. If you have not already done this, see the "Git Presentation" slides in the Tutorials folder in MyCourses. Once you've done this, put your username on slack, so we can add you to the repository.
