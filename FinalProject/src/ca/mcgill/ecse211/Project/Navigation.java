@@ -18,11 +18,11 @@ public class Navigation {
 	/**
 	 * This parameter stands for the radius of wheels.
 	 */
-	public static final double RADIUS = 1.565;//cm. It is certifed by testing from Pengnan.
+	public static final double RADIUS = 2.1;//cm. It is certifed by testing from Pengnan.
 	/**
 	 * This parameter stands for the distances between two tracks.
 	 */
-	public static final double TRACK = 12.5;//cm. It is certified by testing from Pengnan.
+	public static final double TRACK = 13.5;//cm. It is certified by testing from Pengnan.
 	/**
 	 * Angular acceleration of the motors
 	 */
@@ -30,7 +30,7 @@ public class Navigation {
 	/**
 	 * Angular velocity of the motors
 	 */
-	volatile private static int SPEED = 200;
+	volatile private static int SPEED = 350;
 	/**
 	 * Time interval used for thread timing
 	 */
@@ -46,7 +46,7 @@ public class Navigation {
 	/**
 	 * Constant used to trigger falling edge detection
 	 */
-	private static final double EDGE_DISTANCE = 1.4*TILE_SIZE;
+	private static final double EDGE_DISTANCE = 1.5*TILE_SIZE;
 	/**
 	 * Margin used for noise handling during falling edge localization
 	 */
@@ -54,11 +54,11 @@ public class Navigation {
 	/**
 	 * Track distance of localizing light sensors
 	 */
-	private static final double LS_TK_DIS = 14;//cm
+	private static final double LS_TK_DIS = 9;//cm
 	/**
 	 * Distance between the two light sensors
 	 */
-	private static final double LS_DIFF = 14.5;
+	private static final double LS_DIFF = 16;
 	/**
 	 * Number of color samples taken during light sensor initialization
 	 */
@@ -500,13 +500,12 @@ public class Navigation {
 	    boolean right = false;
 	    double leftDetection = 0;
 	    double rightDetection = 0;
-	    int speed = Navigation.SPEED;
-	    setSpeed(Math.max((int)(0.25 * SPEED), 200));
 	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	    setSpeed(Math.max((int)(0.25 * SPEED), 200));
 	    LEFT_MOTOR.forward();
 	    RIGHT_MOTOR.forward();
 	    do {
-		    if(detectLineLeft()&&!left) {
+	    	if(detectLineLeft()&&!left) {
 		    	left = true;
 		    	leftDetection = LEFT_MOTOR.getTachoCount();
 		    	//Sound.beep();
@@ -524,7 +523,7 @@ public class Navigation {
 		    }
 	    } while(!left||!right);
 	    //stop();
-	    setSpeed(speed);
+	    setSpeed(SPEED);
 	    
 	    double diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
 	    double dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
@@ -542,15 +541,15 @@ public class Navigation {
 	    right = false;
 	    leftDetection = 0;
 	    rightDetection = 0;
-	    setSpeed(Math.max((int)(0.25 * SPEED), 200));
 	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+	    setSpeed(Math.max((int)(0.25 * SPEED), 200));
 	    LEFT_MOTOR.forward();
 	    RIGHT_MOTOR.forward();
 	    do {
-		    if(detectLineLeft()&&!left) {
+	    	if(detectLineLeft()&&!left) {
 		    	left = true;
 		    	leftDetection = LEFT_MOTOR.getTachoCount();
-		    	Sound.beep();
+		    	//Sound.beep();
 		    	if(right) {
 		    		stop();
 		    	}
@@ -558,7 +557,7 @@ public class Navigation {
 		    if(detectLineRight()&&!right) {
 		    	right = true;
 		    	rightDetection = LEFT_MOTOR.getTachoCount();
-		    	Sound.beep();
+		    	//Sound.beep();
 		    	if(left) {
 		    		stop();
 		    	}
@@ -566,7 +565,7 @@ public class Navigation {
 	    } while(!left||!right);
 	    //stop();
 	    
-	    setSpeed(speed);
+	    setSpeed(SPEED);
 	    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
 	    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
 	    
@@ -578,7 +577,6 @@ public class Navigation {
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 	    
 		turnLeft(90);
-		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 	}
 	
 	/**
@@ -604,7 +602,7 @@ public class Navigation {
 		        LEFT_MOTOR.forward();
 		        RIGHT_MOTOR.backward();
 		        d2 = d1;
-		        d1 = US.getData(5);
+		        d1 = US.getData(1);
 		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
 		        	stop();
 		        	isDetected = true;
@@ -629,7 +627,7 @@ public class Navigation {
 		        LEFT_MOTOR.backward();
 		        RIGHT_MOTOR.forward();
 		        d2 = d1;
-		        d1 = US.getData(5);
+		        d1 = US.getData(1);
 		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
 		        	stop();
 		        	isDetected = true;
@@ -641,7 +639,7 @@ public class Navigation {
 		    stop();
 		    
 		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
-		    double dTheta = (-225 - 90 + (pos1[2]+pos2[2])/2 + 360)%360;
+		    double dTheta = (-225 -45 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
 		    //Turn to 0
@@ -662,27 +660,22 @@ public class Navigation {
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-		    	left = detectLineLeft();
-		    	right = detectLineRight();
-		    	if(left&&right) {
-		    		stop();
-		    		if(leftDetection == 0) {
-		    			leftDetection = LEFT_MOTOR.getTachoCount();
-		    		} else if(rightDetection == 0) {
-		    			rightDetection = LEFT_MOTOR.getTachoCount();
-		    		}
-		    	} else if(left&&!right) {
-		    		LEFT_MOTOR.stop(true);
-		    		RIGHT_MOTOR.forward();
-		    		leftDetection = LEFT_MOTOR.getTachoCount();
-		    	} else if(!left&&right) {
-		    		LEFT_MOTOR.forward();
-		    		RIGHT_MOTOR.stop(true);
-		    		rightDetection = LEFT_MOTOR.getTachoCount();
-		    	} else {
-		    		LEFT_MOTOR.forward();
-				    RIGHT_MOTOR.forward();
-		    	}
+		    	if(detectLineLeft()&&!left) {
+			    	left = true;
+			    	leftDetection = LEFT_MOTOR.getTachoCount();
+			    	//Sound.beep();
+			    	if(right) {
+			    		stop();
+			    	}
+			    }
+			    if(detectLineRight()&&!right) {
+			    	right = true;
+			    	rightDetection = LEFT_MOTOR.getTachoCount();
+			    	//Sound.beep();
+			    	if(left) {
+			    		stop();
+			    	}
+			    }
 		    } while(!left||!right);
 		    //stop();
 		    setSpeed(SPEED);
@@ -708,28 +701,22 @@ public class Navigation {
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-		    	left = detectLineLeft();
-		    	right = detectLineRight();
-		    	if(left&&right) {
-		    		stop();
-		    		if(leftDetection == 0) {
-		    			leftDetection = LEFT_MOTOR.getTachoCount();
-		    		}
-		    		if(rightDetection == 0) {
-		    			rightDetection = LEFT_MOTOR.getTachoCount();
-		    		}
-		    	} else if(left&&!right) {
-		    		LEFT_MOTOR.stop(true);
-		    		RIGHT_MOTOR.forward();
-		    		leftDetection = LEFT_MOTOR.getTachoCount();
-		    	} else if(!left&&right) {
-		    		LEFT_MOTOR.forward();
-		    		RIGHT_MOTOR.stop(true);
-		    		rightDetection = LEFT_MOTOR.getTachoCount();
-		    	} else {
-		    		LEFT_MOTOR.forward();
-				    RIGHT_MOTOR.forward();
-		    	}
+		    	if(detectLineLeft()&&!left) {
+			    	left = true;
+			    	leftDetection = LEFT_MOTOR.getTachoCount();
+			    	//Sound.beep();
+			    	if(right) {
+			    		stop();
+			    	}
+			    }
+			    if(detectLineRight()&&!right) {
+			    	right = true;
+			    	rightDetection = LEFT_MOTOR.getTachoCount();
+			    	//Sound.beep();
+			    	if(left) {
+			    		stop();
+			    	}
+			    }
 		    } while(!left||!right);
 		    //stop();
 		    
