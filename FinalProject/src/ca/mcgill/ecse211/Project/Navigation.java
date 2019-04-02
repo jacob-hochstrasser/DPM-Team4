@@ -30,7 +30,7 @@ public class Navigation {
 	/**
 	 * Angular velocity of the motors
 	 */
-	volatile private static int SPEED = 350;
+	volatile private static int SPEED = 450;
 	/**
 	 * Time interval used for thread timing
 	 */
@@ -182,13 +182,12 @@ public class Navigation {
 	 * This input suggests the starting corner
 	 * 
 	 */
-	public void setup(int[] LL, int[] UR, int START_CORNER) {
+	public void setup(int[] LL, int[] UR, int startCorner) {
 		this.LL = LL;
 		this.UR = UR;
-		this.START_CORNER = START_CORNER;
+		this.START_CORNER = startCorner;
 		initializeAcceleration();
 		initializeSpeed();
-		//initializeLightSensors();
 	}
 	
 	private void initializeLightSensors() {
@@ -260,8 +259,6 @@ public class Navigation {
 		double distance = Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2));
 		
 		moveForward(distance);
-
-	    //Sound.beep();
 	}
 	
 	/**
@@ -271,7 +268,6 @@ public class Navigation {
 	 */
 	public void travelTo(int[] coords) {
 	    travelTo(coords[0], coords[1]);
-        //Sound.beep();
     }
 	
 	public void travelTo(double[] coords) {
@@ -363,88 +359,20 @@ public class Navigation {
 	 * This method re-localizes the robot with light sensors during the navigation. 
 	 * 
 	 */
-	public void reLocalize() {
-		boolean left = false;
-	    boolean right = false;
-	    double leftDetection = 0;
-	    double rightDetection = 0;
-	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-	    setSpeed(Math.max((int)(0.25 * SPEED), 200));
-	    LEFT_MOTOR.forward();
-	    RIGHT_MOTOR.forward();
-	    do {
-	    	if(detectLineLeft()&&!left) {
-		    	left = true;
-		    	leftDetection = LEFT_MOTOR.getTachoCount();
-		    	//Sound.beep();
-		    	if(right) {
-		    		stop();
-		    	}
-		    }
-		    if(detectLineRight()&&!right) {
-		    	right = true;
-		    	rightDetection = LEFT_MOTOR.getTachoCount();
-		    	//Sound.beep();
-		    	if(left) {
-		    		stop();
-		    	}
-		    }
-	    } while(!left||!right);
-	    //stop();
-	    setSpeed(SPEED);
-	    
-	    double diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
-	    double dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
-	    
-	    turnLeft(dTheta);
-	    //turnRight(ROTATION_ERROR_CCW);
-	    
-	    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), true);
-		RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
-		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		
+	public void reLocalize(double x, double y) {
+	    x *= TILE_SIZE;
+	    y *= TILE_SIZE;
+	    int speed = SPEED;
+	    setSpeed(200);
+	    turnTo(0);
+	    lightLoc();
 		turnRight(90);
-		
-		left = false;
-	    right = false;
-	    leftDetection = 0;
-	    rightDetection = 0;
-	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-	    setSpeed(Math.max((int)(0.25 * SPEED), 200));
-	    LEFT_MOTOR.forward();
-	    RIGHT_MOTOR.forward();
-	    do {
-	    	if(detectLineLeft()&&!left) {
-		    	left = true;
-		    	leftDetection = LEFT_MOTOR.getTachoCount();
-		    	//Sound.beep();
-		    	if(right) {
-		    		stop();
-		    	}
-		    }
-		    if(detectLineRight()&&!right) {
-		    	right = true;
-		    	rightDetection = LEFT_MOTOR.getTachoCount();
-		    	//Sound.beep();
-		    	if(left) {
-		    		stop();
-		    	}
-		    }
-	    } while(!left||!right);
-	    //stop();
-	    
-	    setSpeed(SPEED);
-	    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
-	    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
-	    
-	    turnLeft(dTheta);
-	    //turnRight(ROTATION_ERROR_CCW);
-	    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-	    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), true);
-		RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
-		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-	    
+		lightLoc();
 		turnLeft(90);
+		setSpeed(speed);
+		Odometer.setX(x);
+		Odometer.setY(y);
+		Odometer.resetTheta();
 	}
 	
 	/**
@@ -452,610 +380,171 @@ public class Navigation {
 	 * This method localizes the robot at the starting corner.
 	 * 
 	 */
-	
 	public void localize() {
-		double[] pos1, pos2;
-		float d1, d2;
-		boolean left, right, isDetected;
-		double leftDetection, rightDetection, dTheta, diff;
+		ultrasonicLoc();
+		int speed = SPEED;
+		setSpeed(200);
+		lightLoc();
+		turnRight(90);
+		lightLoc();
+		turnLeft(90);
+		setSpeed(speed);
 		
-		pos1 = new double[] {0, 0, 0};
-		pos2 = new double[] {0, 0, 0};
-		d1 = 0;
-		d2 = 0;
-		left = false;
-		right = false;
-		isDetected = false;
-		leftDetection = 0;
-		rightDetection = 0;
-		dTheta = 0;
-		diff = 0;
-		
-		if (START_CORNER == 0) {
-			//Down left
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
-			d1 = US.getData();
-			
-			// Rotate clockwise until you detect a falling edge
-		    while(!isDetected) {
-		    	try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
-		        LEFT_MOTOR.forward();
-		        RIGHT_MOTOR.backward();
-		        d2 = d1;
-		        d1 = US.getData(1);
-		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
-		        	stop();
-		        	isDetected = true;
-		        	pos1 = Odometer.getPosition();
-		        }
-		    }
-		    //Sound.beep();
-		    isDetected = false;
-		    
-		    d1 = US.getData();
-			d2 = 0;
-			
-			LEFT_MOTOR.backward();
-            RIGHT_MOTOR.forward();
-            try {Thread.sleep(100 * TIME_INTERVAL);} catch (InterruptedException e) {}
-			
-		    // Rotate counter-clockwise until you detect another falling edge
-		    while(!isDetected) {
-		        try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
-		        LEFT_MOTOR.backward();
-		        RIGHT_MOTOR.forward();
-		        d2 = d1;
-		        d1 = US.getData(1);
-		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
-		        	stop();
-		        	isDetected = true;
-		        	pos2 = Odometer.getPosition();
-		        }
-		    }
-		    
-		    //Sound.beep();
-		    stop();
-		    
-		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
-		    dTheta = (-225 -45 + (pos1[2]+pos2[2])/2 + 360)%360;
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    
-		    //Turn to 0
-		    
-		    turnTo(dTheta);
-		    turnRight(ROTATION_ERROR);
-		    Odometer.resetTheta();//Reset theta
-		    if(DEBUG) {
-		        if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-		    }
-		    
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
-		    LEFT_MOTOR.forward();
-		    RIGHT_MOTOR.forward();
-		    do {
-		    	if(detectLineLeft()&&!left) {
-			    	left = true;
-			    	leftDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(right) {
-			    		stop();
-			    	}
-			    }
-			    if(detectLineRight()&&!right) {
-			    	right = true;
-			    	rightDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(left) {
-			    		stop();
-			    	}
-			    }
-		    } while(!left||!right);
-		    //stop();
-		    setSpeed(SPEED);
-		    
-		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
-		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
-		    
-		    turnLeft(dTheta);
-		    //turnRight(ROTATION_ERROR_CCW);
-		    
-		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), true);
-			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-			
-			turnRight(90);
-			
-			left = false;
-		    right = false;
-		    leftDetection = 0;
-		    rightDetection = 0;
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
-		    LEFT_MOTOR.forward();
-		    RIGHT_MOTOR.forward();
-		    do {
-		    	if(detectLineLeft()&&!left) {
-			    	left = true;
-			    	leftDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(right) {
-			    		stop();
-			    	}
-			    }
-			    if(detectLineRight()&&!right) {
-			    	right = true;
-			    	rightDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(left) {
-			    		stop();
-			    	}
-			    }
-		    } while(!left||!right);
-		    //stop();
-		    
-		    setSpeed(SPEED);
-		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
-		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
-		    
-		    turnLeft(dTheta);
-		    //turnRight(ROTATION_ERROR_CCW);
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), true);
-			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    
-			turnLeft(90);
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-			reLocalize();
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		switch(START_CORNER) {
+		case 0:
+		    //Lower left
 		    Odometer.setX(TILE_SIZE);
 		    Odometer.setY(TILE_SIZE);
 		    Odometer.setT(0);
 		    position = new double[] {1,1,0};
-		    
-		} else if (START_CORNER == 1) {
-			//Down right
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
-			
-			d1 = US.getData();
-			
-			// Rotate clockwise until you detect a falling edge
-		    while(!isDetected) {
-		    	try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
-		        LEFT_MOTOR.forward();
-		        RIGHT_MOTOR.backward();
-		        d2 = d1;
-		        d1 = US.getData(1);
-		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
-		        	stop();
-		        	isDetected = true;
-		        	pos1 = Odometer.getPosition();
-		        }
-		    }
-		    //Sound.beep();
-		    
-		    isDetected = false;
-		    
-		    d1 = US.getData();
-			d2 = 0;
-			
-			LEFT_MOTOR.backward();
-            RIGHT_MOTOR.forward();
-            try {Thread.sleep(100 * TIME_INTERVAL);} catch (InterruptedException e) {}
-			
-		    // Rotate counter-clockwise until you detect another falling edge
-		    while(!isDetected) {
-		        try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
-		        LEFT_MOTOR.backward();
-		        RIGHT_MOTOR.forward();
-		        d2 = d1;
-		        d1 = US.getData(1);
-		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
-		        	stop();
-		        	isDetected = true;
-		        	pos2 = Odometer.getPosition();
-		        }
-		    }
-		    
-		    //Sound.beep();
-		    stop();
-		    
-		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
-		    dTheta = (-225 -45 + 90 + (pos1[2]+pos2[2])/2 + 360)%360;
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    
-		    //Turn to 0
-		    
-		    turnTo(dTheta);
-		    //turnRight(ROTATION_ERROR);
-		    Odometer.setT(0);//Reset theta
-		    if(DEBUG) {
-		        if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-		    }
-		    
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
-		    LEFT_MOTOR.forward();
-		    RIGHT_MOTOR.forward();
-		    do {
-		    	if(detectLineLeft()&&!left) {
-			    	left = true;
-			    	leftDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(right) {
-			    		stop();
-			    	}
-			    }
-			    if(detectLineRight()&&!right) {
-			    	right = true;
-			    	rightDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(left) {
-			    		stop();
-			    	}
-			    }
-		    } while(!left||!right);
-		    //stop();
-		    setSpeed(SPEED);
-		    
-		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
-		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
-		    
-		    turnLeft(dTheta);
-		    //turnRight(ROTATION_ERROR_CCW);
-		    
-		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), true);
-			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-			
-			turnLeft(90);
-			
-			left = false;
-		    right = false;
-		    leftDetection = 0;
-		    rightDetection = 0;
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
-		    LEFT_MOTOR.forward();
-		    RIGHT_MOTOR.forward();
-		    do {
-		    	if(detectLineLeft()&&!left) {
-			    	left = true;
-			    	leftDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(right) {
-			    		stop();
-			    	}
-			    }
-			    if(detectLineRight()&&!right) {
-			    	right = true;
-			    	rightDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(left) {
-			    		stop();
-			    	}
-			    }
-		    } while(!left||!right);
-		    //stop();
-		    
-		    setSpeed(SPEED);
-		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
-		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
-		    
-		    turnLeft(dTheta);
-		    //turnRight(ROTATION_ERROR_CCW);
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), true);
-			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    
-			turnRight(90);
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-			reLocalize();
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    break;
+		case 1:
+		    //Lower right
 		    Odometer.setX(14*TILE_SIZE);
 		    Odometer.setY(TILE_SIZE);
-		    Odometer.setT(0);
-		    position = new double[] {14,1,0};
-		    
-		} else if (START_CORNER == 2) {
-			//Up left
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
-			
-			d1 = US.getData();
-			
-			// Rotate clockwise until you detect a falling edge
-		    while(!isDetected) {
-		    	try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
-		        LEFT_MOTOR.forward();
-		        RIGHT_MOTOR.backward();
-		        d2 = d1;
-		        d1 = US.getData(1);
-		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
-		        	stop();
-		        	isDetected = true;
-		        	pos1 = Odometer.getPosition();
-		        }
-		    }
-		    //Sound.beep();
-		    
-		    isDetected = false;
-		    
-		    d1 = US.getData();
-			d2 = 0;
-			
-			LEFT_MOTOR.backward();
-            RIGHT_MOTOR.forward();
-            try {Thread.sleep(100 * TIME_INTERVAL);} catch (InterruptedException e) {}
-			
-		    // Rotate counter-clockwise until you detect another falling edge
-		    while(!isDetected) {
-		        try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
-		        LEFT_MOTOR.backward();
-		        RIGHT_MOTOR.forward();
-		        d2 = d1;
-		        d1 = US.getData(1);
-		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
-		        	stop();
-		        	isDetected = true;
-		        	pos2 = Odometer.getPosition();
-		        }
-		    }
-		    
-		    //Sound.beep();
-		    stop();
-		    
-		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
-		    dTheta = (-225 -45 + 180 + (pos1[2]+pos2[2])/2 + 360)%360;
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    
-		    //Turn to 0
-		    
-		    turnTo(dTheta);
-		    //turnRight(ROTATION_ERROR);
-		    Odometer.setT(180);//Reset theta
-		    if(DEBUG) {
-		        if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-		    }
-		    
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
-		    LEFT_MOTOR.forward();
-		    RIGHT_MOTOR.forward();
-		    do {
-		    	if(detectLineLeft()&&!left) {
-			    	left = true;
-			    	leftDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(right) {
-			    		stop();
-			    	}
-			    }
-			    if(detectLineRight()&&!right) {
-			    	right = true;
-			    	rightDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(left) {
-			    		stop();
-			    	}
-			    }
-		    } while(!left||!right);
-		    //stop();
-		    setSpeed(SPEED);
-		    
-		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
-		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
-		    
-		    turnLeft(dTheta);
-		    //turnRight(ROTATION_ERROR_CCW);
-		    
-		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), true);
-			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-			
-			turnRight(90);
-			
-			left = false;
-		    right = false;
-		    leftDetection = 0;
-		    rightDetection = 0;
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
-		    LEFT_MOTOR.forward();
-		    RIGHT_MOTOR.forward();
-		    do {
-		    	if(detectLineLeft()&&!left) {
-			    	left = true;
-			    	leftDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(right) {
-			    		stop();
-			    	}
-			    }
-			    if(detectLineRight()&&!right) {
-			    	right = true;
-			    	rightDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(left) {
-			    		stop();
-			    	}
-			    }
-		    } while(!left||!right);
-		    //stop();
-		    
-		    setSpeed(SPEED);
-		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
-		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
-		    
-		    turnLeft(dTheta);
-		    //turnRight(ROTATION_ERROR_CCW);
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), true);
-			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    
-			turnLeft(90);
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-			reLocalize();
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    Odometer.setT(270);
+		    position = new double[] {14,1,270};
+		    break;
+		case 2:
+		    //Upper right
 		    Odometer.setX(14*TILE_SIZE);
 		    Odometer.setY(8*TILE_SIZE);
 		    Odometer.setT(180);
 		    position = new double[] {14,8,180};
-		    
-		} else if (START_CORNER == 3) {
-			//Up right
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
-			
-			d1 = US.getData();
-			
-			// Rotate clockwise until you detect a falling edge
-		    while(!isDetected) {
-		    	try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
-		        LEFT_MOTOR.forward();
-		        RIGHT_MOTOR.backward();
-		        d2 = d1;
-		        d1 = US.getData(1);
-		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
-		        	stop();
-		        	isDetected = true;
-		        	pos1 = Odometer.getPosition();
-		        }
-		    }
-		    //Sound.beep();
-		    
-		    isDetected = false;
-		    
-		    d1 = US.getData();
-			d2 = 0;
-			
-			LEFT_MOTOR.backward();
-            RIGHT_MOTOR.forward();
-            try {Thread.sleep(100 * TIME_INTERVAL);} catch (InterruptedException e) {}
-			
-		    // Rotate counter-clockwise until you detect another falling edge
-		    while(!isDetected) {
-		        try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
-		        LEFT_MOTOR.backward();
-		        RIGHT_MOTOR.forward();
-		        d2 = d1;
-		        d1 = US.getData(1);
-		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
-		        	stop();
-		        	isDetected = true;
-		        	pos2 = Odometer.getPosition();
-		        }
-		    }
-		    
-		    //Sound.beep();
-		    stop();
-		    
-		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
-		    dTheta = (-225 -45 + 180 + (pos1[2]+pos2[2])/2 + 360)%360;
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    
-		    //Turn to 0
-		    
-		    turnTo(dTheta);
-		    //turnRight(ROTATION_ERROR);
-		    Odometer.setT(180);//Reset theta
-		    if(DEBUG) {
-		        if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
-		    }
-		    
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
-		    LEFT_MOTOR.forward();
-		    RIGHT_MOTOR.forward();
-		    do {
-		    	if(detectLineLeft()&&!left) {
-			    	left = true;
-			    	leftDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(right) {
-			    		stop();
-			    	}
-			    }
-			    if(detectLineRight()&&!right) {
-			    	right = true;
-			    	rightDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(left) {
-			    		stop();
-			    	}
-			    }
-		    } while(!left||!right);
-		    //stop();
-		    setSpeed(SPEED);
-		    
-		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
-		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
-		    
-		    turnLeft(dTheta);
-		    //turnRight(ROTATION_ERROR_CCW);
-		    
-		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), true);
-			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-			
-			turnLeft(90);
-			
-			left = false;
-		    right = false;
-		    leftDetection = 0;
-		    rightDetection = 0;
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
-		    LEFT_MOTOR.forward();
-		    RIGHT_MOTOR.forward();
-		    do {
-		    	if(detectLineLeft()&&!left) {
-			    	left = true;
-			    	leftDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(right) {
-			    		stop();
-			    	}
-			    }
-			    if(detectLineRight()&&!right) {
-			    	right = true;
-			    	rightDetection = LEFT_MOTOR.getTachoCount();
-			    	//Sound.beep();
-			    	if(left) {
-			    		stop();
-			    	}
-			    }
-		    } while(!left||!right);
-		    //stop();
-		    
-		    setSpeed(SPEED);
-		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
-		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
-		    
-		    turnLeft(dTheta);
-		    //turnRight(ROTATION_ERROR_CCW);
-		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), true);
-			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    
-			turnRight(90);
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-			reLocalize();
-			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    break;
+		case 3:
+		    //Upper left
 		    Odometer.setX(1*TILE_SIZE);
 		    Odometer.setY(8*TILE_SIZE);
-		    Odometer.setT(180);
-		    position = new double[] {1,8,180};
-		} else {
-			Sound.beep();
-			Sound.beep();
-			Sound.beep();
-			System.exit(0);
+		    Odometer.setT(90);
+		    position = new double[] {1,8,90};
+		    break;
+		default:
+		    System.err.println("Error: Program failure at localization. Invalid starting corner");
+		    Sound.beep();
+            Sound.beep();
+            Sound.beep();
+            System.exit(0);
 		}
+		
 		Sound.beep();
+		
+		if(DEBUG) {
+            System.out.println(Odometer.getX());
+            System.out.println(Odometer.getY());
+            System.out.println(Odometer.getT());
+            for(int i = 0; i < 9; i++) {
+                System.out.println();
+            }
+            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+        }
 	}
+
+    private void lightLoc() {
+        double dTheta, diff;
+        boolean left = false, right = false;
+        double leftDetection = 0, rightDetection = 0;
+        
+        //int speed = SPEED;
+        //setSpeed(200);
+        LEFT_MOTOR.forward();
+        RIGHT_MOTOR.forward();
+        do {
+        	if(detectLineLeft()&&!left) {
+            	left = true;
+            	leftDetection = LEFT_MOTOR.getTachoCount();
+            	if(right) {
+            		stop();
+            	}
+            }
+            if(detectLineRight()&&!right) {
+            	right = true;
+            	rightDetection = LEFT_MOTOR.getTachoCount();
+            	if(left) {
+            		stop();
+            	}
+            }
+        } while(!left||!right);
+        //setSpeed(speed);
+        
+        diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+        dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+        
+        turnLeft(dTheta);
+        
+        LEFT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), true);
+        RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
+        try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+    }
+
+    private void ultrasonicLoc() {
+        double[] pos1 = {0, 0, 0};
+        double[] pos2 = {0, 0, 0};
+        float d1, d2;
+        double dTheta;
+        boolean isDetected = false;
+        try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+        d1 = US.getData();
+        
+        // Rotate clockwise until you detect a falling edge
+        while(!isDetected) {
+        	try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+            LEFT_MOTOR.forward();
+            RIGHT_MOTOR.backward();
+            d2 = d1;
+            d1 = US.getData(1);
+            if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
+            	stop();
+            	isDetected = true;
+            	pos1 = Odometer.getPosition();
+            }
+        }
+        
+        isDetected = false;
+        
+        d1 = US.getData();
+        d2 = 0;
+        
+        LEFT_MOTOR.backward();
+        RIGHT_MOTOR.forward();
+        try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+        
+        // Rotate counter-clockwise until you detect another falling edge
+        while(!isDetected) {
+            try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+            LEFT_MOTOR.backward();
+            RIGHT_MOTOR.forward();
+            d2 = d1;
+            d1 = US.getData(1);
+            if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
+            	stop();
+            	isDetected = true;
+            	pos2 = Odometer.getPosition();
+            }
+        }
+        
+        stop();
+        
+        // Calculate angle of local maximum based on two detected edges and use it to find 0° 
+        dTheta = (-225 -90 + (pos1[2]+pos2[2])/2 + 360)%360;
+        try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+        
+        //Turn to 0
+        turnTo(dTheta);
+        turnRight(ROTATION_ERROR);
+        Odometer.resetTheta();//Reset theta
+        if(DEBUG) {
+            System.out.println(Odometer.getX());
+            System.out.println(Odometer.getY());
+            System.out.println(Odometer.getT());
+            for(int i = 0; i < 9; i++) {
+                System.out.println();
+            }
+            if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+        }
+        
+        try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+    }
 	
 	/**
 	 * 
