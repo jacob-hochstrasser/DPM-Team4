@@ -72,7 +72,7 @@ public class Navigation {
 	 */
 	private static final double ROTATION_ERROR = 0;
 	
-	private static final float CAN_DETECTION = 30;
+	private static boolean isCanFound = false;
 	
 	/**
 	 * Color intensity baseline for left localizing light sensor
@@ -278,7 +278,36 @@ public class Navigation {
 	 * This method will try to search for the closest can first, then capture the can and check the color. If the color is correct, then the robot will go back to base. Else, the robot will discard the can and look for the next one.
 	 */
 	public void search() {
+		//Suppose we are starting at the LL
+		//Set searching speed as 200
+		boolean finishSearching = false;
 		
+		while(!finishSearching&&!isCanFound) {
+			finishSearching = true;
+			setSpeed(200);
+			double can_t = 0;
+			double can_dis = 255;
+			LEFT_MOTOR.rotate(convertAngle(360), true);
+			RIGHT_MOTOR.rotate(-convertAngle(360), true);
+			
+			while(LEFT_MOTOR.isMoving()&&RIGHT_MOTOR.isMoving()) {
+				double current_dis = US.getData();
+				if(current_dis<can_dis) {
+					can_t = Odometer.getT();
+					can_dis = current_dis;
+					finishSearching = false;
+				}
+			}
+			turnTo(can_t);
+			moveForward(can_dis);
+			MainProgram.CLAW.close();
+			isCanFound = MainProgram.ID.isTargetCan();
+		}
+		
+		if(!isCanFound) {
+			MainProgram.CLAW.open();
+		}
+		//Go back to origin
 	}
 	
 	private boolean isReached(double x, double y) {
