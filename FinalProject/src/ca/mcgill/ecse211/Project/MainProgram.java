@@ -45,28 +45,44 @@ public class MainProgram {
         int[] tunnel_ur = new int[2];
         int[] sz_ll = new int[2];
         int[] sz_ur = new int[2];
-        int startCorner = 0, targetColor = 0;
+        int startCorner = 0;
 
         try {
             Map data = conn.getData();
-            ll[0] = ((Long) data.get("Red_LL_x")).intValue();
-            ll[1] = ((Long) data.get("Red_LL_y")).intValue();
-            ur[0] = ((Long) data.get("Red_UR_x")).intValue();
-            ur[1] = ((Long) data.get("Red_UR_y")).intValue();
+            if(TEAM_NUMBER == ((Long) data.get("RedTeam")).intValue()) {
+                ll[0] = ((Long) data.get("Red_LL_x")).intValue();
+                ll[1] = ((Long) data.get("Red_LL_y")).intValue();
+                ur[0] = ((Long) data.get("Red_UR_x")).intValue();
+                ur[1] = ((Long) data.get("Red_UR_y")).intValue();
+                tunnel_ll[0] = ((Long) data.get("TNR_LL_x")).intValue();
+                tunnel_ll[1] = ((Long) data.get("TNR_LL_y")).intValue();
+                tunnel_ur[0] = ((Long) data.get("TNR_UR_x")).intValue();
+                tunnel_ur[1] = ((Long) data.get("TNR_UR_y")).intValue();
+                sz_ll[0] = ((Long) data.get("SZR_LL_x")).intValue();
+                sz_ll[1] = ((Long) data.get("SZR_LL_y")).intValue();
+                sz_ur[0] = ((Long) data.get("SZR_UR_x")).intValue();
+                sz_ur[1] = ((Long) data.get("SZR_UR_y")).intValue();
+                startCorner = ((Long) data.get("RedCorner")).intValue();
+            } else if(TEAM_NUMBER == ((Long) data.get("GreenTeam")).intValue()) {
+                ll[0] = ((Long) data.get("Green_LL_x")).intValue();
+                ll[1] = ((Long) data.get("Green_LL_y")).intValue();
+                ur[0] = ((Long) data.get("Green_UR_x")).intValue();
+                ur[1] = ((Long) data.get("Green_UR_y")).intValue();
+                tunnel_ll[0] = ((Long) data.get("TNG_LL_x")).intValue();
+                tunnel_ll[1] = ((Long) data.get("TNG_LL_y")).intValue();
+                tunnel_ur[0] = ((Long) data.get("TNG_UR_x")).intValue();
+                tunnel_ur[1] = ((Long) data.get("TNG_UR_y")).intValue();
+                sz_ll[0] = ((Long) data.get("SZG_LL_x")).intValue();
+                sz_ll[1] = ((Long) data.get("SZG_LL_y")).intValue();
+                sz_ur[0] = ((Long) data.get("SZG_UR_x")).intValue();
+                sz_ur[1] = ((Long) data.get("SZG_UR_y")).intValue();
+                startCorner = ((Long) data.get("GreenCorner")).intValue();
+            }
+            
             island_ll[0] = ((Long) data.get("Island_LL_x")).intValue();
             island_ll[1] = ((Long) data.get("Island_LL_y")).intValue();
             island_ur[0] = ((Long) data.get("Island_UR_x")).intValue();
             island_ur[1] = ((Long) data.get("Island_UR_y")).intValue();
-            tunnel_ll[0] = ((Long) data.get("TNR_LL_x")).intValue();
-            tunnel_ll[1] = ((Long) data.get("TNR_LL_y")).intValue();
-            tunnel_ur[0] = ((Long) data.get("TNR_UR_x")).intValue();
-            tunnel_ur[1] = ((Long) data.get("TNR_UR_y")).intValue();
-            sz_ll[0] = ((Long) data.get("SZR_LL_x")).intValue();
-            sz_ll[1] = ((Long) data.get("SZR_LL_y")).intValue();
-            sz_ur[0] = ((Long) data.get("SZR_UR_x")).intValue();
-            sz_ur[1] = ((Long) data.get("SZR_UR_y")).intValue();
-            startCorner = ((Long) data.get("RedCorner")).intValue();
-            targetColor = ((Long) data.get("GreenTeam")).intValue();
         } catch(Exception e) {
             System.err.println("Error: " + e.getMessage());
         }
@@ -78,7 +94,7 @@ public class MainProgram {
         double[] tunnelRight = {tunnel_ur[0] + 1, tunnel_ur[1] - .5};
         int[] startPos = {ll[0] + 1, ll[1] + 1};
 
-        NAV.setup(sz_ll, sz_ll, startCorner);
+        NAV.setup(sz_ll, sz_ur, startCorner);
         ODO.start();
         NAV.localize();
 
