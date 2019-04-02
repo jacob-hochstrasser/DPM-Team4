@@ -279,142 +279,10 @@ public class Navigation {
 	}
 	
 	/**
-	 * This method drives the robot alone with the rows. It will search for any can it finds.
+	 * This method will try to search for the closest can first, then capture the can and check the color. If the color is correct, then the robot will go back to base. Else, the robot will discard the can and look for the next one.
 	 */
 	public void search() {
-		LL = new int[]{0, 0};
-		UR = new int[]{3, 3};
-		int n_row = UR[1] - LL[1];
-		for(int row = 0; row<n_row; row++) {
-			if(row%2==0) {
-				// going from LL[0] to UR[0]
-				travelTo(UR[0], row+LL[1]);
-				stop();
-				Sound.beep();
-				travelTo(UR[0], row+LL[1]+1);
-			} else if(row%2!=0) {
-				// going from UR[0] to LL[0]
-				travelTo(LL[0], row+LL[1]);
-				stop();
-				Sound.beep();
-				travelTo(LL[0], row+LL[1]+1);
-			}
-			reLocalize();
-			
-		}
-		travelTo(UR);
-		Sound.twoBeeps();
-		/*
-		int n_col = UR[0] - LL[0];
-		int n_row = UR[1] - LL[1];
-		for(int row = 0; row<n_row; row++) {
-			if(row%2==0) {
-				// going from LL[0] to UR[0]
-			    int col;
-			    if(row == 0) {
-			        col = 1;
-			    } else {
-			        col = 0;
-			    }
-				for(col = col; col<n_col; col++) {
-					position = Odometer.getPosition();
-					if(DEBUG) {
-					    System.out.println(position.toString());   
-					}
-					float can_dis = US.getData(); 
-					while(!isReached(col+LL[0], row+LL[1])) {
-						turnTo(calculateTheta((col+LL[0])*TILE_SIZE - position[0], (row+LL[1])*TILE_SIZE - position[1]));
-						LEFT_MOTOR.forward();
-						RIGHT_MOTOR.forward();
-						if (can_dis < CAN_DETECTION&&!foundCan) {
-							stop();
-							turnLeft(180);
-							moveBackward(CAN_DETECTION);
-							//TODO Start measuring color
-							foundCan = ID.isTargetCan();
-							if (foundCan) {
-								travelTo(UR[0], UR[1]);
-								return;
-							}
-							moveForward(CAN_DETECTION);
-							turnLeft(180);
-						}
-						
-					}
-					stop();
-				}
-				// move one row above
-				position = Odometer.getPosition();
-				float can_dis = US.getData();
-				while(!isReached(UR[0], row+LL[1]+1)) {
-					turnTo(calculateTheta(UR[0]*TILE_SIZE - position[0], (row+LL[1])*TILE_SIZE - position[1]));
-					LEFT_MOTOR.forward();
-					RIGHT_MOTOR.forward();
-					if (can_dis < CAN_DETECTION&&!foundCan) {
-						stop();
-						turnLeft(180);
-						moveBackward(CAN_DETECTION);
-						//TODO Start measuring color
-						foundCan = ID.isTargetCan();
-						if (foundCan) {
-							travelTo(UR[0], UR[1]);
-							return;
-						}
-						moveForward(CAN_DETECTION);
-						turnLeft(180);
-					}
-				}
-			} else if(row%2!=0) {
-				// going from UR[0] to LL[0]
-				for(int col = n_col; col>=0; col--) {
-					position = Odometer.getPosition();
-					float can_dis = US.getData();
-					while(!isReached(col+LL[0], row+LL[1])) {
-						turnTo(calculateTheta((col+LL[0])*TILE_SIZE - position[0], (row+LL[1])*TILE_SIZE - position[1]));
-						LEFT_MOTOR.forward();
-						RIGHT_MOTOR.forward();
-						if (can_dis < CAN_DETECTION&&!foundCan) {
-							stop();
-							turnLeft(180);
-							moveBackward(CAN_DETECTION);
-							//TODO Start measuring color
-							foundCan = ID.isTargetCan();
-							if (foundCan) {
-								travelTo(UR[0], UR[1]);
-								return;
-							}
-							moveForward(CAN_DETECTION);
-							turnLeft(180);
-						}
-						
-					}
-					stop();
-				}
-				position = Odometer.getPosition();
-				float can_dis = US.getData();
-				while(!isReached(LL[0], row+LL[1]+1)) {
-					turnTo(calculateTheta(LL[0]*TILE_SIZE - position[0], (row+LL[1])*TILE_SIZE - position[1]));
-					LEFT_MOTOR.forward();
-					RIGHT_MOTOR.forward();
-					if (can_dis < CAN_DETECTION&&!foundCan) {
-						stop();
-						turnLeft(180);
-						moveBackward(CAN_DETECTION);
-						//TODO Start measuring color
-						foundCan = ID.isTargetCan();
-						if (foundCan) {
-							travelTo(UR[0], UR[1]);
-							return;
-						}
-						moveForward(CAN_DETECTION);
-						turnLeft(180);
-					}
-				}
-				stop();
-			}
-			
-		}
-		*/
+		
 	}
 	
 	private boolean isReached(double x, double y) {
@@ -586,15 +454,27 @@ public class Navigation {
 	 */
 	
 	public void localize() {
+		double[] pos1, pos2;
+		float d1, d2;
+		boolean left, right, isDetected;
+		double leftDetection, rightDetection, dTheta, diff;
+		
+		pos1 = new double[] {0, 0, 0};
+		pos2 = new double[] {0, 0, 0};
+		d1 = 0;
+		d2 = 0;
+		left = false;
+		right = false;
+		isDetected = false;
+		leftDetection = 0;
+		rightDetection = 0;
+		dTheta = 0;
+		diff = 0;
 		
 		if (START_CORNER == 0) {
 			//Down left
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
-			
-			double[] pos1 = new double[] {0,0,0};
-			boolean isDetected = false;
-			float d1 = US.getData();
-			float d2 = 0;
+			d1 = US.getData();
 			
 			// Rotate clockwise until you detect a falling edge
 		    while(!isDetected) {
@@ -610,8 +490,6 @@ public class Navigation {
 		        }
 		    }
 		    //Sound.beep();
-		    
-		    double[] pos2 = new double[] {0,0,0};
 		    isDetected = false;
 		    
 		    d1 = US.getData();
@@ -639,7 +517,7 @@ public class Navigation {
 		    stop();
 		    
 		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
-		    double dTheta = (-225 -45 + (pos1[2]+pos2[2])/2 + 360)%360;
+		    dTheta = (-225 -45 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
 		    //Turn to 0
@@ -651,10 +529,6 @@ public class Navigation {
 		        if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
 		    }
 		    
-		    boolean left = false;
-		    boolean right = false;
-		    double leftDetection = 0;
-		    double rightDetection = 0;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
 		    LEFT_MOTOR.forward();
@@ -680,7 +554,7 @@ public class Navigation {
 		    //stop();
 		    setSpeed(SPEED);
 		    
-		    double diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
 		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
 		    
 		    turnLeft(dTheta);
@@ -732,6 +606,8 @@ public class Navigation {
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
 			turnLeft(90);
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+			reLocalize();
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    Odometer.setX(TILE_SIZE);
 		    Odometer.setY(TILE_SIZE);
@@ -742,10 +618,7 @@ public class Navigation {
 			//Down right
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 			
-			double[] pos1 = new double[] {0,0,0};
-			boolean isDetected = false;
-			float d1 = US.getData();
-			float d2 = 0;
+			d1 = US.getData();
 			
 			// Rotate clockwise until you detect a falling edge
 		    while(!isDetected) {
@@ -753,7 +626,7 @@ public class Navigation {
 		        LEFT_MOTOR.forward();
 		        RIGHT_MOTOR.backward();
 		        d2 = d1;
-		        d1 = US.getData();
+		        d1 = US.getData(1);
 		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
 		        	stop();
 		        	isDetected = true;
@@ -762,11 +635,14 @@ public class Navigation {
 		    }
 		    //Sound.beep();
 		    
-		    double[] pos2 = new double[] {0,0,0};
 		    isDetected = false;
 		    
 		    d1 = US.getData();
 			d2 = 0;
+			
+			LEFT_MOTOR.backward();
+            RIGHT_MOTOR.forward();
+            try {Thread.sleep(100 * TIME_INTERVAL);} catch (InterruptedException e) {}
 			
 		    // Rotate counter-clockwise until you detect another falling edge
 		    while(!isDetected) {
@@ -774,7 +650,7 @@ public class Navigation {
 		        LEFT_MOTOR.backward();
 		        RIGHT_MOTOR.forward();
 		        d2 = d1;
-		        d1 = US.getData();
+		        d1 = US.getData(1);
 		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
 		        	stop();
 		        	isDetected = true;
@@ -786,24 +662,24 @@ public class Navigation {
 		    stop();
 		    
 		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
-		    double dTheta = (-225 + (pos1[2]+pos2[2])/2 + 360)%360;
+		    dTheta = (-225 -45 + 90 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
 		    //Turn to 0
+		    
 		    turnTo(dTheta);
-		    turnRight(ROTATION_ERROR);
-		    Odometer.resetTheta();//Reset theta
+		    //turnRight(ROTATION_ERROR);
+		    Odometer.setT(0);//Reset theta
+		    if(DEBUG) {
+		        if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+		    }
 		    
-		    
-		    boolean left = false;
-		    boolean right = false;
-		    double leftDetection = 0;
-		    double rightDetection = 0;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-			    if(detectLineLeft()&&!left) {
+		    	if(detectLineLeft()&&!left) {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
 			    	//Sound.beep();
@@ -821,9 +697,9 @@ public class Navigation {
 			    }
 		    } while(!left||!right);
 		    //stop();
+		    setSpeed(SPEED);
 		    
-		    
-		    double diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
 		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
 		    
 		    turnLeft(dTheta);
@@ -840,10 +716,11 @@ public class Navigation {
 		    leftDetection = 0;
 		    rightDetection = 0;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-			    if(detectLineLeft()&&!left) {
+		    	if(detectLineLeft()&&!left) {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
 			    	//Sound.beep();
@@ -862,7 +739,7 @@ public class Navigation {
 		    } while(!left||!right);
 		    //stop();
 		    
-		    
+		    setSpeed(SPEED);
 		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
 		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
 		    
@@ -873,21 +750,20 @@ public class Navigation {
 			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
-			turnRight(93);
+			turnRight(90);
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    Odometer.setX(7*TILE_SIZE);
+			reLocalize();
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    Odometer.setX(14*TILE_SIZE);
 		    Odometer.setY(TILE_SIZE);
 		    Odometer.setT(0);
-		    position = new double[] {7,1,0};
+		    position = new double[] {14,1,0};
 		    
 		} else if (START_CORNER == 2) {
 			//Up left
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 			
-			double[] pos1 = new double[] {0,0,0};
-			boolean isDetected = false;
-			float d1 = US.getData();
-			float d2 = 0;
+			d1 = US.getData();
 			
 			// Rotate clockwise until you detect a falling edge
 		    while(!isDetected) {
@@ -895,7 +771,7 @@ public class Navigation {
 		        LEFT_MOTOR.forward();
 		        RIGHT_MOTOR.backward();
 		        d2 = d1;
-		        d1 = US.getData();
+		        d1 = US.getData(1);
 		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
 		        	stop();
 		        	isDetected = true;
@@ -904,11 +780,14 @@ public class Navigation {
 		    }
 		    //Sound.beep();
 		    
-		    double[] pos2 = new double[] {0,0,0};
 		    isDetected = false;
 		    
 		    d1 = US.getData();
 			d2 = 0;
+			
+			LEFT_MOTOR.backward();
+            RIGHT_MOTOR.forward();
+            try {Thread.sleep(100 * TIME_INTERVAL);} catch (InterruptedException e) {}
 			
 		    // Rotate counter-clockwise until you detect another falling edge
 		    while(!isDetected) {
@@ -916,7 +795,7 @@ public class Navigation {
 		        LEFT_MOTOR.backward();
 		        RIGHT_MOTOR.forward();
 		        d2 = d1;
-		        d1 = US.getData();
+		        d1 = US.getData(1);
 		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
 		        	stop();
 		        	isDetected = true;
@@ -928,24 +807,24 @@ public class Navigation {
 		    stop();
 		    
 		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
-		    double dTheta = (-225 - 90 + (pos1[2]+pos2[2])/2 + 360)%360;
+		    dTheta = (-225 -45 + 180 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
 		    //Turn to 0
+		    
 		    turnTo(dTheta);
-		    turnRight(ROTATION_ERROR);
-		    Odometer.resetTheta();//Reset theta
+		    //turnRight(ROTATION_ERROR);
+		    Odometer.setT(180);//Reset theta
+		    if(DEBUG) {
+		        if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+		    }
 		    
-		    
-		    boolean left = false;
-		    boolean right = false;
-		    double leftDetection = 0;
-		    double rightDetection = 0;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-			    if(detectLineLeft()&&!left) {
+		    	if(detectLineLeft()&&!left) {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
 			    	//Sound.beep();
@@ -963,9 +842,9 @@ public class Navigation {
 			    }
 		    } while(!left||!right);
 		    //stop();
+		    setSpeed(SPEED);
 		    
-		    
-		    double diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
 		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
 		    
 		    turnLeft(dTheta);
@@ -982,10 +861,11 @@ public class Navigation {
 		    leftDetection = 0;
 		    rightDetection = 0;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-			    if(detectLineLeft()&&!left) {
+		    	if(detectLineLeft()&&!left) {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
 			    	//Sound.beep();
@@ -1004,7 +884,7 @@ public class Navigation {
 		    } while(!left||!right);
 		    //stop();
 		    
-		    
+		    setSpeed(SPEED);
 		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
 		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
 		    
@@ -1015,21 +895,20 @@ public class Navigation {
 			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
-			turnLeft(87);
+			turnLeft(90);
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    Odometer.setX(7*TILE_SIZE);
-		    Odometer.setY(7*TILE_SIZE);
+			reLocalize();
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    Odometer.setX(14*TILE_SIZE);
+		    Odometer.setY(8*TILE_SIZE);
 		    Odometer.setT(180);
-		    position = new double[] {7,7,180};
+		    position = new double[] {14,8,180};
 		    
 		} else if (START_CORNER == 3) {
 			//Up right
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 			
-			double[] pos1 = new double[] {0,0,0};
-			boolean isDetected = false;
-			float d1 = US.getData();
-			float d2 = 0;
+			d1 = US.getData();
 			
 			// Rotate clockwise until you detect a falling edge
 		    while(!isDetected) {
@@ -1037,7 +916,7 @@ public class Navigation {
 		        LEFT_MOTOR.forward();
 		        RIGHT_MOTOR.backward();
 		        d2 = d1;
-		        d1 = US.getData();
+		        d1 = US.getData(1);
 		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
 		        	stop();
 		        	isDetected = true;
@@ -1046,11 +925,14 @@ public class Navigation {
 		    }
 		    //Sound.beep();
 		    
-		    double[] pos2 = new double[] {0,0,0};
 		    isDetected = false;
 		    
 		    d1 = US.getData();
 			d2 = 0;
+			
+			LEFT_MOTOR.backward();
+            RIGHT_MOTOR.forward();
+            try {Thread.sleep(100 * TIME_INTERVAL);} catch (InterruptedException e) {}
 			
 		    // Rotate counter-clockwise until you detect another falling edge
 		    while(!isDetected) {
@@ -1058,7 +940,7 @@ public class Navigation {
 		        LEFT_MOTOR.backward();
 		        RIGHT_MOTOR.forward();
 		        d2 = d1;
-		        d1 = US.getData();
+		        d1 = US.getData(1);
 		        if((d2 >= (EDGE_DISTANCE + NOTICE_MARGIN))&&(d1<= (EDGE_DISTANCE - NOTICE_MARGIN))) {
 		        	stop();
 		        	isDetected = true;
@@ -1070,24 +952,24 @@ public class Navigation {
 		    stop();
 		    
 		    // Calculate angle of local maximum based on two detected edges and use it to find 0° 
-		    double dTheta = (-225 + (pos1[2]+pos2[2])/2 + 360)%360;
+		    dTheta = (-225 -45 + 180 + (pos1[2]+pos2[2])/2 + 360)%360;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
 		    //Turn to 0
+		    
 		    turnTo(dTheta);
-		    turnRight(ROTATION_ERROR + 90);
-		    Odometer.resetTheta();//Reset theta
+		    //turnRight(ROTATION_ERROR);
+		    Odometer.setT(180);//Reset theta
+		    if(DEBUG) {
+		        if(Button.waitForAnyPress() == Button.ID_ESCAPE) System.exit(0);
+		    }
 		    
-		    
-		    boolean left = false;
-		    boolean right = false;
-		    double leftDetection = 0;
-		    double rightDetection = 0;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-			    if(detectLineLeft()&&!left) {
+		    	if(detectLineLeft()&&!left) {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
 			    	//Sound.beep();
@@ -1105,9 +987,9 @@ public class Navigation {
 			    }
 		    } while(!left||!right);
 		    //stop();
+		    setSpeed(SPEED);
 		    
-		    
-		    double diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
 		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
 		    
 		    turnLeft(dTheta);
@@ -1124,10 +1006,11 @@ public class Navigation {
 		    leftDetection = 0;
 		    rightDetection = 0;
 		    try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    setSpeed(Math.max((int)(0.25 * SPEED), 200));
 		    LEFT_MOTOR.forward();
 		    RIGHT_MOTOR.forward();
 		    do {
-			    if(detectLineLeft()&&!left) {
+		    	if(detectLineLeft()&&!left) {
 			    	left = true;
 			    	leftDetection = LEFT_MOTOR.getTachoCount();
 			    	//Sound.beep();
@@ -1146,7 +1029,7 @@ public class Navigation {
 		    } while(!left||!right);
 		    //stop();
 		    
-		    
+		    setSpeed(SPEED);
 		    diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
 		    dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
 		    
@@ -1157,13 +1040,14 @@ public class Navigation {
 			RIGHT_MOTOR.rotate(-convertDistance(Math.abs(diff)*Math.cos(Math.toRadians(dTheta)) + LS_TK_DIS), false);
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
 		    
-			turnRight(93);
+			turnRight(90);
 			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
-		    Odometer.setX(TILE_SIZE);
-		    Odometer.setY(7*TILE_SIZE);
-		    Odometer.setT(0);
-		    position = new double[] {1,7,0};
-		    		    
+			reLocalize();
+			try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
+		    Odometer.setX(1*TILE_SIZE);
+		    Odometer.setY(8*TILE_SIZE);
+		    Odometer.setT(180);
+		    position = new double[] {1,8,180};
 		} else {
 			Sound.beep();
 			Sound.beep();

@@ -32,14 +32,6 @@ public class MainProgram {
     public static void main(String[] args) {
     	
     	/* Testing Code Block */
-    	ID = new Identifier(SCANNER, 3, IDRGB, 10, LCD);
-    	while(true) {
-    		CLAW.close();
-    		try {Thread.sleep(5000);} catch (InterruptedException e) {}
-    		ID.isTargetCan();
-    		CLAW.open();
-    		try {Thread.sleep(5000);} catch (InterruptedException e) {}
-    	}
     	/*
     	ODO.start();
     	NAV.localize();
@@ -129,5 +121,14 @@ public class MainProgram {
         LocalEV3.get().getAudio().systemSound(3);
         */
     }
-
+    private static void identifierTest(int index) {
+    	ID = new Identifier(SCANNER, index, IDRGB, 10, LCD);
+    	while(true) {
+    		CLAW.close();
+    		try {Thread.sleep(3000);} catch (InterruptedException e) {}
+    		ID.isTargetCan();
+    		CLAW.open();
+    		try {Thread.sleep(3000);} catch (InterruptedException e) {}
+    	}
+    }
 }
