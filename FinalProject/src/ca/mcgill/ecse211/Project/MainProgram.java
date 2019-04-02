@@ -12,7 +12,7 @@ import lejos.robotics.SampleProvider;
 public class MainProgram {
 
     // ** Set these as appropriate for your team and current situation **
-    private static final String SERVER_IP = "192.168.2.31";
+    private static final String SERVER_IP = "192.168.2.18";
     private static final int TEAM_NUMBER = 4;
 
     // Enable/disable printing of debug info from the WiFi class
@@ -84,13 +84,14 @@ public class MainProgram {
 
         NAV.travelTo(tunnelLeft[0], tunnel_ll[1]);
         NAV.reLocalize(tunnelLeft[0], tunnel_ll[1]);
-        System.out.println(Odometer.getX());
-        System.out.println(Odometer.getY());
-        System.out.println(Odometer.getT());
+        
 
         NAV.travelTo(tunnelLeft);
         NAV.travelTo(tunnelRight);
         NAV.reLocalize(tunnelRight[0], tunnel_ur[1]);
+        System.out.println(Odometer.getX());
+        System.out.println(Odometer.getY());
+        System.out.println(Odometer.getT());
 
         NAV.travelTo(tunnelRight);
         NAV.travelTo(tunnelLeft);

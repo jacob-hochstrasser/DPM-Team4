@@ -230,7 +230,7 @@ public class Navigation {
 		} else {
 			if(dY>0) {
 				headingTheta = 0;
-			} else if(dX<0) {
+			} else if(dY<0) {
 				headingTheta = 180;
 			} else {
 				headingTheta = 0;
