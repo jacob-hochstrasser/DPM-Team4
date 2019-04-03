@@ -1,6 +1,7 @@
 package ca.mcgill.ecse211.Project;
 
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
@@ -162,6 +163,15 @@ public class Identifier {
      * The text lcd of the EV3 brick
      */
     private TextLCD lcd;
+    
+    //private static Identifier ID;
+    
+    //    public static Identifier getIdentifier(EV3MediumRegulatedMotor scanner, SampleProvider idLSRGB, TextLCD lcd) {
+    //        if(ID == null) {
+    //            ID = new Identifier(scanner, idLSRGB, lcd);
+    //        }
+    //        return ID;
+    //    }
 
     /**
      * Creates an Identifier object with the specified parameters.
@@ -189,6 +199,20 @@ public class Identifier {
 
     }
     
+    public Identifier(EV3MediumRegulatedMotor scanner, SampleProvider idLSRGB, TextLCD lcd) {
+        this.scanner = scanner;
+        this.targetInt = 0;
+        this.target = TARGET_COLOR.decodeValue(targetInt);
+        this.idLSRGB = idLSRGB;
+        this.numSamples = 1000;
+        this.isSampling = false;
+        samples = new float[numSamples][idLSRGB.sampleSize()];
+        this.lcd = lcd;
+        
+        scanner.setAcceleration(ACCELERATION);
+        scanner.setSpeed(SPEED);
+    }
+    
     /**
      * Scans a single spot on a can and prints which color is being detected.
      */
@@ -206,9 +230,11 @@ public class Identifier {
         }
         
         int match = findMatch();
-        lcd.clear();
-        lcd.drawString("Object detected", 0, 0);
-        lcd.drawString(TARGET_COLOR.tcToString(match + 1), 0, 1);
+        if(match != -1) {
+            lcd.clear();
+            lcd.drawString("Object detected", 0, 0);
+            lcd.drawString(TARGET_COLOR.tcToString(match), 0, 1);
+        }
     }
     
     /**
@@ -217,15 +243,10 @@ public class Identifier {
      * @return boolean representing whether a target was found
      */
     public boolean isTargetCan() {
-        this.setNumSamples(1000);
-        this.isSampling = true;
-        scanCan(true);
-        computeMeans(samples, sampleMeans);
-
+        takeSamples();
         int match = findMatch();
 
-        // offset index by 1 (0 index is generic value)
-        if((match + 1) == targetInt) {
+        if((match) == targetInt) {
             LocalEV3.get().getAudio().systemSound(0);
             this.isSampling = false;
             return true;
@@ -234,6 +255,29 @@ public class Identifier {
             this.isSampling = false;
             return false;
         } 
+    }
+    
+    public int identifyCan() {
+        takeSamples();
+        int match = findMatch();
+        if(match == -1) {
+            return match;
+        }
+        beep(match);
+        return match;
+    }
+    
+    private void beep(int numBeeps) {
+        for(int i = 0; i < numBeeps; i++) {
+            Sound.beep();
+        }
+    }
+    
+    private void takeSamples() {
+        this.setNumSamples(1000);
+        this.isSampling = true;
+        scanCan(true);
+        computeMeans(samples, sampleMeans);
     }
     
     /**
@@ -300,14 +344,8 @@ public class Identifier {
      * @return index of the most likely color match offset by -1
      */
     private int findMatch() {
-        //        for(int i = 0; i < LI_REFERENCE_MEANS.length; i++) {
-        //            if(within2SDS(sampleMeans, LI_REFERENCE_MEANS[i], LI_REFERENCE_SDS[i])) {
-        //                return i;
-        //            }
-        //        }
         float[] errors = new float[LI_REFERENCE_MEANS.length];
         for(int i = 0; i < errors.length; i++) {
-            //errors[i] = computeEuclidianDistance(sampleMeans, LI_REFERENCE_MEANS[i]);
             errors[i] = computeStdDevsAway(sampleMeans, LI_REFERENCE_MEANS[i], LI_REFERENCE_SDS[i]);
         }
         
@@ -320,7 +358,13 @@ public class Identifier {
                 j = i;
             } 
         }
-        return j;
+        
+        if(errors[j] <= 9) {
+            return j + 1; 
+        } else {
+            return -1;
+        }
+        
     }
     
     /**
@@ -450,6 +494,7 @@ public class Identifier {
         numSDS[1] = Math.abs(data[1] - means[1])/sds[1];
         numSDS[2] = Math.abs(data[2] - means[2])/sds[2];
         float result = numSDS[0] + numSDS[1] + numSDS[2];
+        System.out.println(result);
         return result;
     }
     
