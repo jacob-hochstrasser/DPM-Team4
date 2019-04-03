@@ -1,14 +1,16 @@
 package ca.mcgill.ecse211.Project;
 
+
 import lejos.hardware.Button;
 import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
+import lejos.hardware.lcd.LCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 /** 
  * This is a class that controls the movements of the Lego EV3 robot.
  * 
- * @author Pengnan Fan
+ * @author Pengnan, Jake
  *
  */
 
@@ -71,8 +73,6 @@ public class Navigation {
 	 * Numbers of degrees error after calculations to correct by during localization.
 	 */
 	private static final double ROTATION_ERROR = 0;
-	
-	private static boolean isCanFound = false;
 	
 	/**
 	 * Color intensity baseline for left localizing light sensor
@@ -140,10 +140,20 @@ public class Navigation {
 	 * This is only for block testing
 	 */
 	void demo() {
-		LEFT_MOTOR.forward();
-		RIGHT_MOTOR.backward();
+		//double data = US.getData();
+		setSpeed(50);
+		LEFT_MOTOR.rotate(convertAngle(90), true);
+		RIGHT_MOTOR.rotate(-convertAngle(90), true);
 		while(true) {
-			
+			double data = US.getData();
+			LCD.clear();
+		    LCD.drawString("US: " + data, 0, 5);
+		    try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -230,7 +240,7 @@ public class Navigation {
 		} else {
 			if(dY>0) {
 				headingTheta = 0;
-			} else if(dY<0) {
+			} else if(dX<0) {
 				headingTheta = 180;
 			} else {
 				headingTheta = 0;
@@ -280,33 +290,40 @@ public class Navigation {
 	public void search() {
 		//Suppose we are starting at the LL
 		//Set searching speed as 200
-		boolean finishSearching = false;
 		
-		while(!finishSearching&&!isCanFound) {
-			finishSearching = true;
-			setSpeed(200);
-			double can_t = 0;
-			double can_dis = 255;
-			LEFT_MOTOR.rotate(convertAngle(360), true);
-			RIGHT_MOTOR.rotate(-convertAngle(360), true);
-			
-			while(LEFT_MOTOR.isMoving()&&RIGHT_MOTOR.isMoving()) {
-				double current_dis = US.getData();
+		LL = new int[] {1, 1};
+		UR = new int[] {3, 3};
+		setSpeed(50);
+		double can_t = 0;
+		double can_dis = Math.sqrt(Math.pow(LL[0] - UR[0], 2) + Math.pow(LL[1] - UR[1], 2));
+		LEFT_MOTOR.rotate(convertAngle(90), true);
+		RIGHT_MOTOR.rotate(-convertAngle(90), true);
+		
+		while(LEFT_MOTOR.isMoving()&&RIGHT_MOTOR.isMoving()) {
+			double current_dis = US.getData();
+			double current_t = Odometer.getT();
+			double equiv_y = LL[1] + (Math.cos(Math.toRadians(current_t))) / TILE_SIZE;
+			double equiv_x = LL[0] + (Math.sin(Math.toRadians(current_t))) / TILE_SIZE;
+			//Check if position valid
+			if(equiv_x<=UR[0]&&equiv_y<=UR[1]){
+				//Valid position
 				if(current_dis<can_dis) {
-					can_t = Odometer.getT();
+					//once I find the "can", I need to identifiy if it is an actual can or a wall.
+					can_t = current_t;
 					can_dis = current_dis;
-					finishSearching = false;
 				}
+
 			}
-			turnTo(can_t);
-			moveForward(can_dis);
-			MainProgram.CLAW.close();
-			isCanFound = MainProgram.ID.isTargetCan();
+			//Invalid position
+				
 		}
+		setSpeed(SPEED);
+		turnTo(can_t);
+		moveForward(can_dis);
+		MainProgram.CLAW.close();
+		// identify the can
+		//moveTo(LL[0], LL[1]);
 		
-		if(!isCanFound) {
-			MainProgram.CLAW.open();
-		}
 		//Go back to origin
 	}
 	
@@ -554,7 +571,7 @@ public class Navigation {
         
         stop();
         
-        // Calculate angle of local maximum based on two detected edges and use it to find 0° 
+        // Calculate angle of local maximum based on two detected edges and use it to find 0Â° 
         dTheta = (-225 -90 + (pos1[2]+pos2[2])/2 + 360)%360;
         try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
         
