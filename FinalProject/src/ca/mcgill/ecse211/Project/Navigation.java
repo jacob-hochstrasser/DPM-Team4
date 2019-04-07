@@ -89,7 +89,7 @@ public class Navigation {
 	/**
 	 * The corner the robot starts in {0 -> bottom left, 1 -> bottom right, 2 -> top right, 3 -> top left}
 	 */
-	private int START_CORNER = 0;// 0 -> down left, 1 -> down right, 2 -> up right, 3 -> up left
+	private int START_CORNER = 3;// 0 -> down left, 1 -> down right, 2 -> up right, 3 -> up left
 	/**
 	 * The lower left corner of the table
 	 */
