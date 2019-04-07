@@ -24,7 +24,7 @@ public class Navigation {
 	/**
 	 * This parameter stands for the distances between two tracks.
 	 */
-	public static final double TRACK = 13.5;//cm. It is certified by testing from Pengnan.
+	public static final double TRACK = 13.45;//cm. It is certified by testing from Pengnan.
 	/**
 	 * Angular acceleration of the motors
 	 */
@@ -73,6 +73,8 @@ public class Navigation {
 	 * Numbers of degrees error after calculations to correct by during localization.
 	 */
 	private static final double ROTATION_ERROR = 0;
+	
+	private static final long HEAVY = 500;
 	
 	/**
 	 * Color intensity baseline for left localizing light sensor
@@ -141,9 +143,9 @@ public class Navigation {
 	 */
 	void demo() {
 		//double data = US.getData();
-		setSpeed(50);
-		LEFT_MOTOR.rotate(convertAngle(90), true);
-		RIGHT_MOTOR.rotate(-convertAngle(90), true);
+		//setSpeed(100);
+		//LEFT_MOTOR.rotate(convertAngle(90), true);
+		//RIGHT_MOTOR.rotate(-convertAngle(90), true);
 		while(true) {
 			double data = US.getData();
 			LCD.clear();
@@ -287,52 +289,48 @@ public class Navigation {
 	/**
 	 * This method will try to search for the closest can first, then capture the can and check the color. If the color is correct, then the robot will go back to base. Else, the robot will discard the can and look for the next one.
 	 */
-	public void search() {
-		//Suppose we are starting at the LL
-		//Set searching speed as 200
-		
-		LL = new int[] {1, 1};
-		UR = new int[] {3, 3};
-		setSpeed(50);
+	public boolean search(boolean isFound) {
+		boolean betterThisTime = false;
+		setSpeed(100);
 		double can_t = 0;
-		double can_dis = Math.sqrt(Math.pow(LL[0] - UR[0], 2) + Math.pow(LL[1] - UR[1], 2));
+		double can_dis = TILE_SIZE*1.5;
 		LEFT_MOTOR.rotate(convertAngle(90), true);
 		RIGHT_MOTOR.rotate(-convertAngle(90), true);
 		
 		while(LEFT_MOTOR.isMoving()&&RIGHT_MOTOR.isMoving()) {
 			double current_dis = US.getData();
 			double current_t = Odometer.getT();
-			double equiv_y = LL[1] + (Math.cos(Math.toRadians(current_t))) / TILE_SIZE;
-			double equiv_x = LL[0] + (Math.sin(Math.toRadians(current_t))) / TILE_SIZE;
-			//Check if position valid
-			if(equiv_x<=UR[0]&&equiv_y<=UR[1]){
-				//Valid position
-				if(current_dis<can_dis) {
-					//once I find the "can", I need to identifiy if it is an actual can or a wall.
-					can_t = current_t;
-					can_dis = current_dis;
-				}
-
+			
+			if(current_dis<can_dis) {
+				betterThisTime = true;
+				can_dis = current_dis;
+				can_t = current_t;
 			}
-			//Invalid position
 				
 		}
-		setSpeed(SPEED);
-		turnTo(can_t);
-		moveForward(can_dis);
-		MainProgram.CLAW.close();
-		// identify the can
-		//moveTo(LL[0], LL[1]);
 		
-		//Go back to origin
+		if(betterThisTime) {
+			turnTo(can_t);
+			moveForward(can_dis);
+			MainProgram.CLAW.close();
+			//Identify color
+			MainProgram.ID.identifyCan();
+		}
+		
+		//Next round
+		return betterThisTime;
 	}
 	
-	private boolean isReached(double x, double y) {
-		position = Odometer.getPosition();
-		if(DEBUG) {
-		    System.out.println(position.toString());
-		}
-		return position[0]>=0.95*(x*TILE_SIZE)&&position[0]<=1.05*(x*TILE_SIZE)&&position[1]>=0.95*(y*TILE_SIZE)&&position[1]<=1.05*(y*TILE_SIZE);
+	public static boolean weight() {
+		LEFT_MOTOR.setAcceleration(500);
+		RIGHT_MOTOR.setAcceleration(500);
+		LEFT_MOTOR.setSpeed(100);
+		RIGHT_MOTOR.setSpeed(100);
+		long start = System.currentTimeMillis();
+		LEFT_MOTOR.rotate(-convertDistance(5), true);
+		RIGHT_MOTOR.rotate(-convertDistance(5), false);
+		long end = System.currentTimeMillis();
+		return end - start > HEAVY;
 	}
 	
 	/**
@@ -571,7 +569,7 @@ public class Navigation {
         
         stop();
         
-        // Calculate angle of local maximum based on two detected edges and use it to find 0Â° 
+        // Calculate angle of local maximum based on two detected edges and use it to find 0° 
         dTheta = (-225 -90 + (pos1[2]+pos2[2])/2 + 360)%360;
         try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
         
@@ -700,7 +698,7 @@ public class Navigation {
 		try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
 	}
 	
-	private int convertAngle(double angle) {return convertDistance(Math.PI * TRACK * angle / 360.0);}
+	private static int convertAngle(double angle) {return convertDistance(Math.PI * TRACK * angle / 360.0);}
 	  
-	private int convertDistance(double distance) {return (int) ((180.0 * distance) / (Math.PI * RADIUS));}
+	private static int convertDistance(double distance) {return (int) ((180.0 * distance) / (Math.PI * RADIUS));}
 }

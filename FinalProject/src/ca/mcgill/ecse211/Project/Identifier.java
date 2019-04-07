@@ -263,15 +263,21 @@ public class Identifier {
         if(match == -1) {
             return match;
         }
-        beep(match);
+        
+        beep(match, Navigation.weight());
         return match;
     }
     
-    private void beep(int numBeeps) {
+    private void beep(int numBeeps, boolean isHeavy) {
         for(int i = 0; i < numBeeps; i++) {
-            Sound.beep();
+            if(isHeavy) {
+            	Sound.playTone(659, 1000);
+            } else {
+            	Sound.playTone(659, 500);
+            }
         }
     }
+   
     
     private void takeSamples() {
         this.setNumSamples(1000);
