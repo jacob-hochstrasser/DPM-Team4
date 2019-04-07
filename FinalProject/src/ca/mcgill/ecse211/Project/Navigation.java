@@ -289,7 +289,7 @@ public class Navigation {
 	/**
 	 * This method will try to search for the closest can first, then capture the can and check the color. If the color is correct, then the robot will go back to base. Else, the robot will discard the can and look for the next one.
 	 */
-	public boolean search(boolean isFound) {
+	public boolean search() {
 		boolean betterThisTime = false;
 		setSpeed(100);
 		double can_t = 0;
