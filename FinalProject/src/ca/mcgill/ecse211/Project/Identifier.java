@@ -500,7 +500,6 @@ public class Identifier {
         numSDS[1] = Math.abs(data[1] - means[1])/sds[1];
         numSDS[2] = Math.abs(data[2] - means[2])/sds[2];
         float result = numSDS[0] + numSDS[1] + numSDS[2];
-        System.out.println(result);
         return result;
     }
     
