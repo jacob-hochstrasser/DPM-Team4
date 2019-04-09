@@ -27,6 +27,7 @@ public class MainProgram {
     private static final String Claw = "D";
     private static final Navigation NAV = Navigation.getNavigation(LEFT_MOTOR, RIGHT_MOTOR);
     private static final Odometer ODO = new Odometer();
+    private static boolean amIRed = false;
     public static final Identifier ID = new Identifier(SCANNER, IDRGB, LCD);
 
     public static final ClawController CLAW = new ClawController(Claw);
@@ -34,85 +35,116 @@ public class MainProgram {
     @SuppressWarnings("rawtypes")
     public static void main(String[] args) {
 
-        identifierTest();
-        //        // Initialize WifiConnection class
-        //        WifiConnection conn = new WifiConnection(SERVER_IP, TEAM_NUMBER, ENABLE_DEBUG_WIFI_PRINT);
-        //
-        //        int[] ll = new int[2];
-        //        int[] ur = new int[2];
-        //        int[] island_ll = new int[2];
-        //        int[] island_ur = new int[2];
-        //        int[] tunnel_ll = new int[2];
-        //        int[] tunnel_ur = new int[2];
-        //        int[] sz_ll = new int[2];
-        //        int[] sz_ur = new int[2];
-        //        int startCorner = 0;
-        //
-        //        try {
-        //            Map data = conn.getData();
-        //            if(TEAM_NUMBER == ((Long) data.get("RedTeam")).intValue()) {
-        //                ll[0] = ((Long) data.get("Red_LL_x")).intValue();
-        //                ll[1] = ((Long) data.get("Red_LL_y")).intValue();
-        //                ur[0] = ((Long) data.get("Red_UR_x")).intValue();
-        //                ur[1] = ((Long) data.get("Red_UR_y")).intValue();
-        //                tunnel_ll[0] = ((Long) data.get("TNR_LL_x")).intValue();
-        //                tunnel_ll[1] = ((Long) data.get("TNR_LL_y")).intValue();
-        //                tunnel_ur[0] = ((Long) data.get("TNR_UR_x")).intValue();
-        //                tunnel_ur[1] = ((Long) data.get("TNR_UR_y")).intValue();
-        //                sz_ll[0] = ((Long) data.get("SZR_LL_x")).intValue();
-        //                sz_ll[1] = ((Long) data.get("SZR_LL_y")).intValue();
-        //                sz_ur[0] = ((Long) data.get("SZR_UR_x")).intValue();
-        //                sz_ur[1] = ((Long) data.get("SZR_UR_y")).intValue();
-        //                startCorner = ((Long) data.get("RedCorner")).intValue();
-        //            } else if(TEAM_NUMBER == ((Long) data.get("GreenTeam")).intValue()) {
-        //                ll[0] = ((Long) data.get("Green_LL_x")).intValue();
-        //                ll[1] = ((Long) data.get("Green_LL_y")).intValue();
-        //                ur[0] = ((Long) data.get("Green_UR_x")).intValue();
-        //                ur[1] = ((Long) data.get("Green_UR_y")).intValue();
-        //                tunnel_ll[0] = ((Long) data.get("TNG_LL_x")).intValue();
-        //                tunnel_ll[1] = ((Long) data.get("TNG_LL_y")).intValue();
-        //                tunnel_ur[0] = ((Long) data.get("TNG_UR_x")).intValue();
-        //                tunnel_ur[1] = ((Long) data.get("TNG_UR_y")).intValue();
-        //                sz_ll[0] = ((Long) data.get("SZG_LL_x")).intValue();
-        //                sz_ll[1] = ((Long) data.get("SZG_LL_y")).intValue();
-        //                sz_ur[0] = ((Long) data.get("SZG_UR_x")).intValue();
-        //                sz_ur[1] = ((Long) data.get("SZG_UR_y")).intValue();
-        //                startCorner = ((Long) data.get("GreenCorner")).intValue();
-        //            }
-        //            
-        //            island_ll[0] = ((Long) data.get("Island_LL_x")).intValue();
-        //            island_ll[1] = ((Long) data.get("Island_LL_y")).intValue();
-        //            island_ur[0] = ((Long) data.get("Island_UR_x")).intValue();
-        //            island_ur[1] = ((Long) data.get("Island_UR_y")).intValue();
-        //        } catch(Exception e) {
-        //            System.err.println("Error: " + e.getMessage());
-        //        }
-        //        
-        //        /*--- Offset coordinates of tunnel as navigation target (so robot doesn't hit the corner of it ---*/
-        //        double[] tunnelLeft = {tunnel_ll[0] - 1, tunnel_ll[1] + .5};
-        //        double[] tunnelRight = {tunnel_ur[0] + 1, tunnel_ur[1] - .5};
-        //        int[] startPos = {ll[0] + 1, ll[1] + 1};
-        //
-        //        NAV.setup(sz_ll, sz_ur, startCorner);
-        //        ODO.start();
-        //        NAV.localize();
-        //
-        //        NAV.travelTo(tunnelLeft[0], tunnel_ll[1]);
-        //        NAV.reLocalize(tunnelLeft[0], tunnel_ll[1]);
-        //        
-        //
-        //        NAV.travelTo(tunnelLeft);
-        //        NAV.travelTo(tunnelRight);
-        //        NAV.reLocalize(tunnelRight[0], tunnel_ur[1]);
-        //        System.out.println(Odometer.getX());
-        //        System.out.println(Odometer.getY());
-        //        System.out.println(Odometer.getT());
-        //
-        //        NAV.travelTo(tunnelRight);
-        //        NAV.travelTo(tunnelLeft);
-        //        NAV.reLocalize(tunnelLeft[0], tunnel_ll[1] + 1);
-        //
-        //        NAV.travelTo(startPos);
+        //identifierTest();
+    	//Initialize WifiConnection class
+    	WifiConnection conn = new WifiConnection(SERVER_IP, TEAM_NUMBER, ENABLE_DEBUG_WIFI_PRINT);
+
+    	int[] ll = new int[2];
+    	int[] ur = new int[2];
+    	int[] island_ll = new int[2];
+    	int[] island_ur = new int[2];
+    	int[] tunnel_ll = new int[2];
+    	int[] tunnel_ur = new int[2];
+    	int[] sz_ll = new int[2];
+    	int[] sz_ur = new int[2];
+    	int startCorner = 0;
+    	try {
+    		Map data = conn.getData();
+    		amIRed = (TEAM_NUMBER == ((Long) data.get("RedTeam")).intValue());
+    		if(amIRed) {
+    			ll[0] = ((Long) data.get("Red_LL_x")).intValue();
+    			ll[1] = ((Long) data.get("Red_LL_y")).intValue();
+    			ur[0] = ((Long) data.get("Red_UR_x")).intValue();
+    			ur[1] = ((Long) data.get("Red_UR_y")).intValue();
+    			tunnel_ll[0] = ((Long) data.get("TNR_LL_x")).intValue();
+    			tunnel_ll[1] = ((Long) data.get("TNR_LL_y")).intValue();
+    			tunnel_ur[0] = ((Long) data.get("TNR_UR_x")).intValue();
+    			tunnel_ur[1] = ((Long) data.get("TNR_UR_y")).intValue();
+    			sz_ll[0] = ((Long) data.get("SZR_LL_x")).intValue();
+    			sz_ll[1] = ((Long) data.get("SZR_LL_y")).intValue();
+    			sz_ur[0] = ((Long) data.get("SZR_UR_x")).intValue();
+    			sz_ur[1] = ((Long) data.get("SZR_UR_y")).intValue();
+    			startCorner = ((Long) data.get("RedCorner")).intValue();
+    		} else if(!amIRed) {
+    			ll[0] = ((Long) data.get("Green_LL_x")).intValue();
+    			ll[1] = ((Long) data.get("Green_LL_y")).intValue();
+    			ur[0] = ((Long) data.get("Green_UR_x")).intValue();
+    			ur[1] = ((Long) data.get("Green_UR_y")).intValue();
+    			tunnel_ll[0] = ((Long) data.get("TNG_LL_x")).intValue();
+    			tunnel_ll[1] = ((Long) data.get("TNG_LL_y")).intValue();
+    			tunnel_ur[0] = ((Long) data.get("TNG_UR_x")).intValue();
+    			tunnel_ur[1] = ((Long) data.get("TNG_UR_y")).intValue();
+    			sz_ll[0] = ((Long) data.get("SZG_LL_x")).intValue();
+    			sz_ll[1] = ((Long) data.get("SZG_LL_y")).intValue();
+    			sz_ur[0] = ((Long) data.get("SZG_UR_x")).intValue();
+    			sz_ur[1] = ((Long) data.get("SZG_UR_y")).intValue();
+    			startCorner = ((Long) data.get("GreenCorner")).intValue();
+    		}
+
+    		island_ll[0] = ((Long) data.get("Island_LL_x")).intValue();
+    		island_ll[1] = ((Long) data.get("Island_LL_y")).intValue();
+    		island_ur[0] = ((Long) data.get("Island_UR_x")).intValue();
+    		island_ur[1] = ((Long) data.get("Island_UR_y")).intValue();
+    	} catch(Exception e) {
+    		System.err.println("Error: " + e.getMessage());
+    	}
+
+    	/*--- Offset coordinates of tunnel as navigation target (so robot doesn't hit the corner of it ---*/
+    	double[] tunnelLeft = {tunnel_ll[0] - 1, tunnel_ll[1] + .5};
+    	double[] tunnelRight = {tunnel_ur[0] + 1, tunnel_ur[1] - .5};
+    	int[] startPos = {ll[0] + 1, ll[1] + 1};
+
+    	NAV.setup(sz_ll, sz_ur, startCorner, ll, ur, island_ll, island_ur, tunnel_ll, tunnel_ur);
+    	ODO.start();
+    	NAV.localize();
+    	NAV.passTheTunnel(true);
+    	NAV.travelTo(ll);
+    	NAV.reLocalize(ll[0], ll[1]);
+    	NAV.search();
+    	NAV.turnTo(0);
+    	NAV.reLocalize(ll[0], ll[1]);
+    	NAV.passTheTunnel(false);
+    	if(startCorner == 0) {
+    		NAV.travelTo(1, 1);
+    	} else if(startCorner == 1) {
+    		NAV.travelTo(14, 1);
+    	} else if(startCorner == 2) {
+    		NAV.travelTo(14, 8);
+    	} else {
+    		NAV.travelTo(1, 8);
+    	}
+    	
+    	NAV.moveForward(30.28*Math.sqrt(2)/2);
+    	
+    	CLAW.open();
+    	NAV.moveBackward(30.28*Math.sqrt(2)/2);
+    	NAV.turnTo(0);
+    	if(startCorner == 0) {
+    		NAV.reLocalize(1, 1);
+    	} else if(startCorner == 1) {
+    		NAV.reLocalize(14, 1);
+    	} else if(startCorner == 2) {
+    		NAV.reLocalize(14, 8);
+    	} else {
+    		NAV.reLocalize(1, 8);
+    	}
+    	
+//    	NAV.travelTo(tunnelLeft[0], tunnel_ll[1]);
+//    	NAV.reLocalize(tunnelLeft[0], tunnel_ll[1]);
+//
+//
+//    	NAV.travelTo(tunnelLeft);
+//    	NAV.travelTo(tunnelRight);
+//    	NAV.reLocalize(tunnelRight[0], tunnel_ur[1]);
+//    	System.out.println(Odometer.getX());
+//    	System.out.println(Odometer.getY());
+//    	System.out.println(Odometer.getT());
+//
+//    	NAV.travelTo(tunnelRight);
+//    	NAV.travelTo(tunnelLeft);
+//    	NAV.reLocalize(tunnelLeft[0], tunnel_ll[1] + 1);
+//
+//    	NAV.travelTo(startPos);
     }
 
     private static void identifierTest() {
