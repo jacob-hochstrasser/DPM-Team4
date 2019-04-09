@@ -89,7 +89,7 @@ public class Navigation {
 	/**
 	 * The corner the robot starts in {0 -> bottom left, 1 -> bottom right, 2 -> top right, 3 -> top left}
 	 */
-	private int START_CORNER = 3;// 0 -> down left, 1 -> down right, 2 -> up right, 3 -> up left
+	private int START_CORNER = 0;// 0 -> down left, 1 -> down right, 2 -> up right, 3 -> up left
 	/**
 	 * The lower left corner of the table
 	 */
@@ -215,8 +215,12 @@ public class Navigation {
 		initializeSpeed();
 	}
 	
-	private boolean isInTheRange(int[] area_LL, int[] area_UR, int[] point) {
-		return (point[0] >= area_LL[0]) && (point[0] <= area_UR[0]) && (point[1] >= area_LL[1]) && (point[1] <= area_UR[1]);
+	private boolean isInTheRange(int[] area_LL, int[] area_UR, double[] nextPos) {
+		return (nextPos[0] >= area_LL[0]) && (nextPos[0] <= area_UR[0]) && (nextPos[1] >= area_LL[1]) && (nextPos[1] <= area_UR[1]);
+	}
+	
+	private boolean isInTheRange(int[] area_LL, int[] area_UR, int[] nextPos) {
+		return (nextPos[0] >= area_LL[0]) && (nextPos[0] <= area_UR[0]) && (nextPos[1] >= area_LL[1]) && (nextPos[1] <= area_UR[1]);
 	}
 	
 	private boolean isTunnelVertical() {
@@ -556,8 +560,11 @@ public class Navigation {
 			MainProgram.ID.identifyCan();
 			travelTo(SEARCH_LL);
 		} else {
-			travelTo(nextPos);
-			return search();
+			if(isInTheRange(SEARCH_LL, SEARCH_UR, nextPos)) {
+				travelTo(nextPos);
+				return search();
+			}
+			travelTo(SEARCH_LL);
 		}
 		
 		//Next round
@@ -813,8 +820,15 @@ public class Navigation {
         stop();
         
         // Calculate angle of local maximum based on two detected edges and use it to find 0° 
-        dTheta = (-45 + (pos1[2]+pos2[2])/2 + 360)%360;
-        //dTheta = (-225 -90 + (pos1[2]+pos2[2])/2 + 360)%360;
+        
+        if(pos1[2]>pos2[2]) {
+        	//to wall
+        	dTheta = (-45 + (pos1[2] + pos2[2])/2 + 360)%360;
+        } else {
+        	//to air
+        	dTheta = (45 + (pos1[2] + pos2[2])/2 + 360)%360;
+        }
+        
         try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
         
         //Turn to 0
