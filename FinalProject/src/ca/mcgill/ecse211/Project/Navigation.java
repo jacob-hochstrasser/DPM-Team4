@@ -817,6 +817,8 @@ public class Navigation {
 		}
 		
 		Sound.beep();
+		Sound.beep();
+		Sound.beep();
 		
 		if(DEBUG) {
             System.out.println(Odometer.getX());
@@ -873,6 +875,12 @@ public class Navigation {
         double dTheta;
         boolean isDetected = false;
         try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+        
+        LEFT_MOTOR.forward();
+        RIGHT_MOTOR.backward();
+        
+        try {Thread.sleep(TIME_INTERVAL*10);} catch (InterruptedException e) {}
+        
         d1 = US.getData();
         
         // Rotate clockwise until you detect a falling edge
@@ -891,12 +899,13 @@ public class Navigation {
         
         isDetected = false;
         
-        d1 = US.getData();
-        d2 = 0;
-        
         LEFT_MOTOR.backward();
         RIGHT_MOTOR.forward();
-        try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e) {}
+        
+        try {Thread.sleep(TIME_INTERVAL*10);} catch (InterruptedException e) {}
+        
+        d1 = US.getData();
+        d2 = 0;
         
         // Rotate counter-clockwise until you detect another falling edge
         while(!isDetected) {
@@ -918,10 +927,10 @@ public class Navigation {
         
         if(pos1[2]<pos2[2]) {
         	//to air
-        	dTheta = (-45 + (pos1[2] + pos2[2])/2 + 360)%360;
+        	dTheta = (135 + (pos1[2] + pos2[2])/2 + 360)%360;
         } else {
         	//to wall
-        	dTheta = (45 + (pos1[2] + pos2[2])/2 + 360)%360;
+        	dTheta = (-45+ 90 + (pos1[2] + pos2[2])/2 + 360)%360;
         }
         
         try {Thread.sleep(TIME_INTERVAL);} catch (InterruptedException e1) {}
