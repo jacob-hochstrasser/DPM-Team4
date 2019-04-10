@@ -771,6 +771,9 @@ public class Navigation {
 	 */
 	public void localize() {
 		ultrasonicLoc();
+		turnRight(90);
+		moveForward(10);
+		turnTo(0);
 		int speed = SPEED;
 		setSpeed(200);
 		lightLoc();

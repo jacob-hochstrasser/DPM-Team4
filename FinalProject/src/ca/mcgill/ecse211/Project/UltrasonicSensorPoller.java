@@ -66,9 +66,7 @@ public class UltrasonicSensorPoller implements SensorPoller{
 		    try {
 		        ultrasonicSensor = new EV3UltrasonicSensor(usPort);
 		    } catch(IllegalArgumentException e) {
-		        Sound.beep();
-		        System.out.println(e.getMessage());
-		        Button.waitForAnyPress();
+
 		    }
 		}
 		

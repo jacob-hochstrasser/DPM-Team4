@@ -63,9 +63,7 @@ public class LightSensorPoller implements SensorPoller{
 		        try {
 		            light = ((EV3ColorSensor)lightSensor).getRGBMode();
 		        } catch(IllegalArgumentException e) {
-		            Sound.beep();
-		            System.out.println(e.getMessage());
-		            Button.waitForAnyPress();
+
 		        }
 		    }
 			
@@ -74,9 +72,7 @@ public class LightSensorPoller implements SensorPoller{
                 try {
                     light = ((EV3ColorSensor)lightSensor).getRedMode();
                 } catch(IllegalArgumentException e) {
-                    Sound.beep();
-                    System.out.println(e.getMessage());
-                    Button.waitForAnyPress();
+
                 }
             }
 		}
