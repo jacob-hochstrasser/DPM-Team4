@@ -153,17 +153,7 @@ public class Navigation {
 		//setSpeed(100);
 		//LEFT_MOTOR.rotate(convertAngle(90), true);
 		//RIGHT_MOTOR.rotate(-convertAngle(90), true);
-		while(true) {
-			double data = US.getData();
-			LCD.clear();
-		    LCD.drawString("US: " + data, 0, 5);
-		    try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+		lightLocLine();
 	}
 	
 	/**
@@ -290,6 +280,40 @@ public class Navigation {
 		return -1;
 	}
 	
+	private void lightLocLine() {
+		double dTheta, diff;
+        boolean left = false, right = false;
+        double leftDetection = 0, rightDetection = 0;
+        
+        int speed = SPEED;
+        setSpeed(200);
+        LEFT_MOTOR.forward();
+        RIGHT_MOTOR.forward();
+        do {
+        	if(detectLineLeft()&&!left) {
+            	left = true;
+            	leftDetection = LEFT_MOTOR.getTachoCount();
+            	if(right) {
+            		stop();
+            	}
+            }
+            if(detectLineRight()&&!right) {
+            	right = true;
+            	rightDetection = LEFT_MOTOR.getTachoCount();
+            	if(left) {
+            		stop();
+            	}
+            }
+        } while(!left||!right);
+        //setSpeed(speed);
+        
+        diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
+        dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
+        
+        turnLeft(dTheta);
+        setSpeed(SPEED);
+	}
+	
 	public void passTheTunnel(boolean forward) {
 		boolean vertical = isTunnelVertical();
 		int closeToWall = isTunnelCloseToWalls();
@@ -306,23 +330,41 @@ public class Navigation {
 						travelTo(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
 						turnTo(0);
 						reLocalize(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
+						turnTo(90);
+						//moveForward(TILE_SIZE/2);
+						//turnTo(0);
+						//moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
 					} else if(closeToWater_area == 3) {
 						//Close to left water
 						travelTo(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
 						turnTo(0);
 						reLocalize(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+						turnTo(270);
+                        //moveForward(TILE_SIZE/2);
+                        //turnTo(0);
+                        //moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
 					}
 				} else if(closeToWall == 1) {
 					travelTo(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
 					turnTo(0);
 					reLocalize(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
+					turnTo(90);
+                    //moveForward(TILE_SIZE/2);
+                    //turnTo(0);
+                    //moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
 				} else if(closeToWall == 3) {
 					travelTo(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
 					turnTo(0);
 					reLocalize(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+					turnTo(270);
+                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+                    //turnTo(0);
+                    //moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
 				}
-				travelTo(TUNNEL_LL[0] + 0.5, TUNNEL_LL[1] - 0.5);
-				travelTo(TUNNEL_UR[0] - 0.5, TUNNEL_UR[1] + 0.5);
+				moveForward(TILE_SIZE/2);
+				turnTo(0);
+				lightLocLine();
+				travelTo(TUNNEL_LL[0]+0.5, TUNNEL_UR[1]+1);
 			} else {
 				//Horizontal
 				if(closeToWall == -1) {
@@ -332,23 +374,40 @@ public class Navigation {
 						travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
 						turnTo(0);
 						reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
+						turnTo(180);
+                        //moveForward(TILE_SIZE/2);
+                        //turnTo(90);
+                        //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
 					} else if(closeToWater_area == 2) {
 						//Close to left water
 						travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
 						turnTo(0);
 						reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
+                        //moveForward(TILE_SIZE/2);
+                        //turnTo(90);
+                        //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
 					}
 				} else if(closeToWall == 0) {
 					travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
 					turnTo(0);
 					reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
+					turnTo(180);
+                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+                    //turnTo(90);
+                    //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
 				} else if(closeToWall == 2) {
 					travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
 					turnTo(0);
 					reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
+					//turnTo(45);
+                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+                    //turnTo(90);
+                    //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
 				}
-				travelTo(TUNNEL_LL[0] - 0.5, TUNNEL_LL[1] + 0.5);
-				travelTo(TUNNEL_UR[0] + 0.5, TUNNEL_UR[1] + 0.5);
+				moveForward(TILE_SIZE/2);
+                turnTo(90);
+				lightLocLine();
+				travelTo(TUNNEL_UR[0]+1, TUNNEL_UR[1]-0.5);
 			}
 			
 			//Passed Tunnel
@@ -379,23 +438,41 @@ public class Navigation {
 						travelTo(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
 						turnTo(0);
 						reLocalize(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
+						turnTo(90);
+						//moveForward(TILE_SIZE*Math.sqrt(2)/2);
+						//turnTo(180);
+						//moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
 					} else if(closeToWater_island == 3) {
 						//Close to left water
 						travelTo(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
 						turnTo(0);
 						reLocalize(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+						turnTo(270);
+                        //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+                        //turnTo(180);
+                        //moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
 					}
 				} else if(closeToWall == 1) {
 					travelTo(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
 					turnTo(0);
 					reLocalize(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
+					turnTo(90);
+                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+                    //turnTo(180);
+                    //moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
 				} else if(closeToWall == 3) {
 					travelTo(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
 					turnTo(0);
 					reLocalize(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+					turnTo(270);
+                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+                    //turnTo(180);
+                    //moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
 				}
-				travelTo(TUNNEL_UR[0] - 0.5, TUNNEL_UR[1] + 0.5);
-				travelTo(TUNNEL_LL[0] + 0.5, TUNNEL_LL[1] - 0.5);
+				moveForward(TILE_SIZE/2);
+                turnTo(180);
+				lightLocLine();
+				travelTo(TUNNEL_LL[0]+0.5, TUNNEL_LL[1]-1);
 			} else {
 				//Horizontal
 				if(closeToWall == -1) {
@@ -405,23 +482,41 @@ public class Navigation {
 						travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
 						turnTo(0);
 						reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
+						turnTo(180);
+                        //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+                        //turnTo(270);
+                        //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
 					} else if(closeToWater_island == 2) {
 						//Close to left water
 						travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
 						turnTo(0);
 						reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
+						//turnTo(315);
+                        //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+                        //turnTo(270);
+                        //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
 					}
 				} else if(closeToWall == 0) {
 					travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
 					turnTo(0);
 					reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
+					turnTo(180);
+                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+                    //turnTo(270);
+                    //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
 				} else if(closeToWall == 2) {
 					travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
 					turnTo(0);
 					reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
+					//turnTo(315);
+                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+                    //turnTo(270);
+                    //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
 				}
-				travelTo(TUNNEL_UR[0] + 0.5, TUNNEL_UR[1] - 0.5);
-				travelTo(TUNNEL_LL[0] - 0.5, TUNNEL_LL[1] + 0.5);
+				moveForward(TILE_SIZE/2);
+                turnTo(270);
+				lightLocLine();
+				travelTo(TUNNEL_LL[0]-1, TUNNEL_LL[1]+0.5);
 			}
 			
 			//Passed Tunnel
@@ -821,11 +916,11 @@ public class Navigation {
         
         // Calculate angle of local maximum based on two detected edges and use it to find 0° 
         
-        if(pos1[2]>pos2[2]) {
-        	//to wall
+        if(pos1[2]<pos2[2]) {
+        	//to air
         	dTheta = (-45 + (pos1[2] + pos2[2])/2 + 360)%360;
         } else {
-        	//to air
+        	//to wall
         	dTheta = (45 + (pos1[2] + pos2[2])/2 + 360)%360;
         }
         
