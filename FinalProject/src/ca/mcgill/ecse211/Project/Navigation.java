@@ -314,227 +314,453 @@ public class Navigation {
         setSpeed(SPEED);
 	}
 	
+	private boolean leftToRightOrUpToDownAsForward() {
+		return isInTheRange(AREA_LL, AREA_UR, TUNNEL_LL);
+	}
+	
 	public void passTheTunnel(boolean forward) {
 		boolean vertical = isTunnelVertical();
 		int closeToWall = isTunnelCloseToWalls();
 		int closeToWater_area = isTunnelNearWater(true, vertical);
 		int closeToWater_island = isTunnelNearWater(false, vertical);
-		if(forward) {
-			//Going from starting point to the island
-			if(vertical) {
-				//Vertical tunnel
-				if(closeToWall == -1) {
-					//Not close to wall
-					if (closeToWater_area == -1||closeToWater_area == 1) {
-						//Not close to water or close to right water
+		if(leftToRightOrUpToDownAsForward()) {
+			if(forward) {
+				//Going from starting point to the island
+				if(vertical) {
+					//Vertical tunnel
+					if(closeToWall == -1) {
+						//Not close to wall
+						if (closeToWater_area == -1||closeToWater_area == 1) {
+							//Not close to water or close to right water
+							travelTo(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
+							turnTo(0);
+							reLocalize(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
+							turnTo(90);
+							//moveForward(TILE_SIZE/2);
+							//turnTo(0);
+							//moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
+						} else if(closeToWater_area == 3) {
+							//Close to left water
+							travelTo(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+							turnTo(0);
+							reLocalize(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+							turnTo(270);
+	                        //moveForward(TILE_SIZE/2);
+	                        //turnTo(0);
+	                        //moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
+						}
+					} else if(closeToWall == 1) {
 						travelTo(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
 						turnTo(0);
 						reLocalize(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
 						turnTo(90);
-						//moveForward(TILE_SIZE/2);
-						//turnTo(0);
-						//moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
-					} else if(closeToWater_area == 3) {
-						//Close to left water
+	                    //moveForward(TILE_SIZE/2);
+	                    //turnTo(0);
+	                    //moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
+					} else if(closeToWall == 3) {
 						travelTo(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
 						turnTo(0);
 						reLocalize(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
 						turnTo(270);
-                        //moveForward(TILE_SIZE/2);
-                        //turnTo(0);
-                        //moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
+	                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                    //turnTo(0);
+	                    //moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
 					}
-				} else if(closeToWall == 1) {
-					travelTo(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
+					moveForward(TILE_SIZE/2);
 					turnTo(0);
-					reLocalize(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
-					turnTo(90);
-                    //moveForward(TILE_SIZE/2);
-                    //turnTo(0);
-                    //moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
-				} else if(closeToWall == 3) {
-					travelTo(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
-					turnTo(0);
-					reLocalize(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
-					turnTo(270);
-                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
-                    //turnTo(0);
-                    //moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
-				}
-				moveForward(TILE_SIZE/2);
-				turnTo(0);
-				lightLocLine();
-				travelTo(TUNNEL_LL[0]+0.5, TUNNEL_UR[1]+1);
-			} else {
-				//Horizontal
-				if(closeToWall == -1) {
-					//Not close to wall
-					if (closeToWater_area == -1||closeToWater_area == 0) {
-						//Not close to water or close to right water
+					lightLocLine();
+					travelTo(TUNNEL_LL[0]+0.5, TUNNEL_UR[1]+1);
+				} else {
+					//Horizontal
+					if(closeToWall == -1) {
+						//Not close to wall
+						if (closeToWater_area == -1||closeToWater_area == 0) {
+							//Not close to water or close to right water
+							travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
+							turnTo(0);
+							reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
+							turnTo(180);
+	                        //moveForward(TILE_SIZE/2);
+	                        //turnTo(90);
+	                        //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
+						} else if(closeToWater_area == 2) {
+							//Close to left water
+							travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
+							turnTo(0);
+							reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
+	                        //moveForward(TILE_SIZE/2);
+	                        //turnTo(90);
+	                        //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
+						}
+					} else if(closeToWall == 0) {
 						travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
 						turnTo(0);
 						reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
 						turnTo(180);
-                        //moveForward(TILE_SIZE/2);
-                        //turnTo(90);
-                        //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
-					} else if(closeToWater_area == 2) {
-						//Close to left water
+	                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                    //turnTo(90);
+	                    //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
+					} else if(closeToWall == 2) {
 						travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
 						turnTo(0);
 						reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
-                        //moveForward(TILE_SIZE/2);
-                        //turnTo(90);
-                        //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
+						//turnTo(45);
+	                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                    //turnTo(90);
+	                    //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
 					}
-				} else if(closeToWall == 0) {
-					travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
-					turnTo(0);
-					reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
-					turnTo(180);
-                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
-                    //turnTo(90);
-                    //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
-				} else if(closeToWall == 2) {
-					travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
-					turnTo(0);
-					reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
-					//turnTo(45);
-                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
-                    //turnTo(90);
-                    //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
+					moveForward(TILE_SIZE/2);
+	                turnTo(90);
+					lightLocLine();
+					travelTo(TUNNEL_UR[0]+1, TUNNEL_UR[1]-0.5);
 				}
-				moveForward(TILE_SIZE/2);
-                turnTo(90);
-				lightLocLine();
-				travelTo(TUNNEL_UR[0]+1, TUNNEL_UR[1]-0.5);
-			}
-			
-			//Passed Tunnel
-			if(closeToWater_island == 0||closeToWall == 0) {
-				travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
-				reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
-			} else if(closeToWater_island == 1||closeToWall == 1) {
-				travelTo(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
-				reLocalize(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
-			} else if(closeToWater_island == 2||closeToWall == 2) {
-				travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
-				reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
-			} else if(closeToWater_island == 3||closeToWall == 3) {
-				travelTo(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
-				reLocalize(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+				
+				//Passed Tunnel
+				if(closeToWater_island == 0||closeToWall == 0) {
+					travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
+					reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
+				} else if(closeToWater_island == 1||closeToWall == 1) {
+					travelTo(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
+					reLocalize(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
+				} else if(closeToWater_island == 2||closeToWall == 2) {
+					travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
+					reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
+				} else if(closeToWater_island == 3||closeToWall == 3) {
+					travelTo(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+					reLocalize(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+				} else {
+					travelTo(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+					reLocalize(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+				}
 			} else {
-				travelTo(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
-				reLocalize(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
-			}
-		} else {
-			//Going back from the searching LL to the starting area
-			if(vertical) {
-				//Vertical tunnel
-				if(closeToWall == -1) {
-					//Not close to wall
-					if (closeToWater_island == -1||closeToWater_island == 1) {
-						//Not close to water or close to right water
+				//Going back from the searching LL to the starting area
+				if(vertical) {
+					//Vertical tunnel
+					if(closeToWall == -1) {
+						//Not close to wall
+						if (closeToWater_island == -1||closeToWater_island == 1) {
+							//Not close to water or close to right water
+							travelTo(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
+							turnTo(0);
+							reLocalize(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
+							turnTo(90);
+							//moveForward(TILE_SIZE*Math.sqrt(2)/2);
+							//turnTo(180);
+							//moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
+						} else if(closeToWater_island == 3) {
+							//Close to left water
+							travelTo(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+							turnTo(0);
+							reLocalize(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+							turnTo(270);
+	                        //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                        //turnTo(180);
+	                        //moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
+						}
+					} else if(closeToWall == 1) {
 						travelTo(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
 						turnTo(0);
 						reLocalize(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
 						turnTo(90);
-						//moveForward(TILE_SIZE*Math.sqrt(2)/2);
-						//turnTo(180);
-						//moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
-					} else if(closeToWater_island == 3) {
-						//Close to left water
+	                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                    //turnTo(180);
+	                    //moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
+					} else if(closeToWall == 3) {
 						travelTo(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
 						turnTo(0);
 						reLocalize(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
 						turnTo(270);
-                        //moveForward(TILE_SIZE*Math.sqrt(2)/2);
-                        //turnTo(180);
-                        //moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
+	                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                    //turnTo(180);
+	                    //moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
 					}
-				} else if(closeToWall == 1) {
-					travelTo(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
-					turnTo(0);
-					reLocalize(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
-					turnTo(90);
-                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
-                    //turnTo(180);
-                    //moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
-				} else if(closeToWall == 3) {
-					travelTo(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
-					turnTo(0);
-					reLocalize(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
-					turnTo(270);
-                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
-                    //turnTo(180);
-                    //moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
-				}
-				moveForward(TILE_SIZE/2);
-                turnTo(180);
-				lightLocLine();
-				travelTo(TUNNEL_LL[0]+0.5, TUNNEL_LL[1]-1);
-			} else {
-				//Horizontal
-				if(closeToWall == -1) {
-					//Not close to wall
-					if (closeToWater_island == -1||closeToWater_island == 0) {
-						//Not close to water or close to right water
+					moveForward(TILE_SIZE/2);
+	                turnTo(180);
+					lightLocLine();
+					travelTo(TUNNEL_LL[0]+0.5, TUNNEL_LL[1]-1);
+				} else {
+					//Horizontal
+					if(closeToWall == -1) {
+						//Not close to wall
+						if (closeToWater_island == -1||closeToWater_island == 0) {
+							//Not close to water or close to right water
+							travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
+							turnTo(0);
+							reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
+							turnTo(180);
+	                        //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                        //turnTo(270);
+	                        //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
+						} else if(closeToWater_island == 2) {
+							//Close to left water
+							travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
+							turnTo(0);
+							reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
+							//turnTo(315);
+	                        //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                        //turnTo(270);
+	                        //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
+						}
+					} else if(closeToWall == 0) {
 						travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
 						turnTo(0);
 						reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
 						turnTo(180);
-                        //moveForward(TILE_SIZE*Math.sqrt(2)/2);
-                        //turnTo(270);
-                        //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
-					} else if(closeToWater_island == 2) {
-						//Close to left water
+	                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                    //turnTo(270);
+	                    //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
+					} else if(closeToWall == 2) {
 						travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
 						turnTo(0);
 						reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
 						//turnTo(315);
-                        //moveForward(TILE_SIZE*Math.sqrt(2)/2);
-                        //turnTo(270);
-                        //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
+	                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                    //turnTo(270);
+	                    //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
 					}
-				} else if(closeToWall == 0) {
-					travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
-					turnTo(0);
-					reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
-					turnTo(180);
-                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
-                    //turnTo(270);
-                    //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
-				} else if(closeToWall == 2) {
-					travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
-					turnTo(0);
-					reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
-					//turnTo(315);
-                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
-                    //turnTo(270);
-                    //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
+					moveForward(TILE_SIZE/2);
+	                turnTo(270);
+					lightLocLine();
+					travelTo(TUNNEL_LL[0]-1, TUNNEL_LL[1]+0.5);
 				}
-				moveForward(TILE_SIZE/2);
-                turnTo(270);
-				lightLocLine();
-				travelTo(TUNNEL_LL[0]-1, TUNNEL_LL[1]+0.5);
+				
+				//Passed Tunnel
+				if(closeToWater_area == 0||closeToWall == 0) {
+					travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
+					reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
+				} else if(closeToWater_area == 1||closeToWall == 1) {
+					travelTo(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
+					reLocalize(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
+				} else if(closeToWater_area == 2||closeToWall == 2) {
+					travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
+					reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
+				} else if(closeToWater_area == 3||closeToWall == 3) {
+					travelTo(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+					reLocalize(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+				} else {
+					travelTo(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+					reLocalize(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+				}
 			}
-			
-			//Passed Tunnel
-			if(closeToWater_area == 0||closeToWall == 0) {
-				travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
-				reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
-			} else if(closeToWater_area == 1||closeToWall == 1) {
-				travelTo(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
-				reLocalize(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
-			} else if(closeToWater_area == 2||closeToWall == 2) {
-				travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
-				reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
-			} else if(closeToWater_area == 3||closeToWall == 3) {
-				travelTo(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
-				reLocalize(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+		} else {
+			//Right to left as forward
+			if(!forward) {
+				//Going from starting point to the island
+				if(vertical) {
+					//Vertical tunnel
+					if(closeToWall == -1) {
+						//Not close to wall
+						if (closeToWater_area == -1||closeToWater_area == 1) {
+							//Not close to water or close to right water
+							travelTo(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
+							turnTo(0);
+							reLocalize(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
+							turnTo(90);
+							//moveForward(TILE_SIZE/2);
+							//turnTo(0);
+							//moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
+						} else if(closeToWater_area == 3) {
+							//Close to left water
+							travelTo(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+							turnTo(0);
+							reLocalize(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+							turnTo(270);
+	                        //moveForward(TILE_SIZE/2);
+	                        //turnTo(0);
+	                        //moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
+						}
+					} else if(closeToWall == 1) {
+						travelTo(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
+						turnTo(0);
+						reLocalize(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
+						turnTo(90);
+	                    //moveForward(TILE_SIZE/2);
+	                    //turnTo(0);
+	                    //moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
+					} else if(closeToWall == 3) {
+						travelTo(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+						turnTo(0);
+						reLocalize(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+						turnTo(270);
+	                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                    //turnTo(0);
+	                    //moveForward(((TUNNEL_UR[1] - TUNNEL_LL[1]) + 1)*TILE_SIZE);
+					}
+					moveForward(TILE_SIZE/2);
+					turnTo(0);
+					lightLocLine();
+					travelTo(TUNNEL_LL[0]+0.5, TUNNEL_UR[1]+1);
+				} else {
+					//Horizontal
+					if(closeToWall == -1) {
+						//Not close to wall
+						if (closeToWater_area == -1||closeToWater_area == 0) {
+							//Not close to water or close to right water
+							travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
+							turnTo(0);
+							reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
+							turnTo(180);
+	                        //moveForward(TILE_SIZE/2);
+	                        //turnTo(90);
+	                        //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
+						} else if(closeToWater_area == 2) {
+							//Close to left water
+							travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
+							turnTo(0);
+							reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
+	                        //moveForward(TILE_SIZE/2);
+	                        //turnTo(90);
+	                        //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
+						}
+					} else if(closeToWall == 0) {
+						travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
+						turnTo(0);
+						reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
+						turnTo(180);
+	                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                    //turnTo(90);
+	                    //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
+					} else if(closeToWall == 2) {
+						travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
+						turnTo(0);
+						reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
+						//turnTo(45);
+	                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                    //turnTo(90);
+	                    //moveForward(((TUNNEL_UR[0] - TUNNEL_LL[0]) + 1)*TILE_SIZE);
+					}
+					moveForward(TILE_SIZE/2);
+	                turnTo(90);
+					lightLocLine();
+					travelTo(TUNNEL_UR[0]+1, TUNNEL_UR[1]-0.5);
+				}
+				
+				//Passed Tunnel
+				if(closeToWater_island == 0||closeToWall == 0) {
+					travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
+					reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
+				} else if(closeToWater_island == 1||closeToWall == 1) {
+					travelTo(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
+					reLocalize(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
+				} else if(closeToWater_island == 2||closeToWall == 2) {
+					travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
+					reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
+				} else if(closeToWater_island == 3||closeToWall == 3) {
+					travelTo(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+					reLocalize(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+				} else {
+					travelTo(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+					reLocalize(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+				}
 			} else {
-				travelTo(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
-				reLocalize(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+				//Going back from the searching LL to the starting area
+				if(vertical) {
+					//Vertical tunnel
+					if(closeToWall == -1) {
+						//Not close to wall
+						if (closeToWater_island == -1||closeToWater_island == 1) {
+							//Not close to water or close to right water
+							travelTo(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
+							turnTo(0);
+							reLocalize(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
+							turnTo(90);
+							//moveForward(TILE_SIZE*Math.sqrt(2)/2);
+							//turnTo(180);
+							//moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
+						} else if(closeToWater_island == 3) {
+							//Close to left water
+							travelTo(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+							turnTo(0);
+							reLocalize(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+							turnTo(270);
+	                        //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                        //turnTo(180);
+	                        //moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
+						}
+					} else if(closeToWall == 1) {
+						travelTo(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
+						turnTo(0);
+						reLocalize(TUNNEL_UR[0] - 1, TUNNEL_UR[1] + 1);
+						turnTo(90);
+	                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                    //turnTo(180);
+	                    //moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
+					} else if(closeToWall == 3) {
+						travelTo(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+						turnTo(0);
+						reLocalize(TUNNEL_UR[0], TUNNEL_UR[1] + 1);
+						turnTo(270);
+	                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                    //turnTo(180);
+	                    //moveForward((TUNNEL_UR[1] - TUNNEL_LL[1] +1)*TILE_SIZE);
+					}
+					moveForward(TILE_SIZE/2);
+	                turnTo(180);
+					lightLocLine();
+					travelTo(TUNNEL_LL[0]+0.5, TUNNEL_LL[1]-1);
+				} else {
+					//Horizontal
+					if(closeToWall == -1) {
+						//Not close to wall
+						if (closeToWater_island == -1||closeToWater_island == 0) {
+							//Not close to water or close to right water
+							travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
+							turnTo(0);
+							reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
+							turnTo(180);
+	                        //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                        //turnTo(270);
+	                        //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
+						} else if(closeToWater_island == 2) {
+							//Close to left water
+							travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
+							turnTo(0);
+							reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
+							//turnTo(315);
+	                        //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                        //turnTo(270);
+	                        //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
+						}
+					} else if(closeToWall == 0) {
+						travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
+						turnTo(0);
+						reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1]);
+						turnTo(180);
+	                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                    //turnTo(270);
+	                    //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
+					} else if(closeToWall == 2) {
+						travelTo(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
+						turnTo(0);
+						reLocalize(TUNNEL_UR[0] + 1, TUNNEL_UR[1] - 1);
+						//turnTo(315);
+	                    //moveForward(TILE_SIZE*Math.sqrt(2)/2);
+	                    //turnTo(270);
+	                    //moveForward((TUNNEL_UR[0] - TUNNEL_LL[0] +1)*TILE_SIZE);
+					}
+					moveForward(TILE_SIZE/2);
+	                turnTo(270);
+					lightLocLine();
+					travelTo(TUNNEL_LL[0]-1, TUNNEL_LL[1]+0.5);
+				}
+				
+				//Passed Tunnel
+				if(closeToWater_area == 0||closeToWall == 0) {
+					travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
+					reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1] + 1);
+				} else if(closeToWater_area == 1||closeToWall == 1) {
+					travelTo(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
+					reLocalize(TUNNEL_LL[0], TUNNEL_LL[1] - 1);
+				} else if(closeToWater_area == 2||closeToWall == 2) {
+					travelTo(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
+					reLocalize(TUNNEL_LL[0] - 1, TUNNEL_LL[1]);
+				} else if(closeToWater_area == 3||closeToWall == 3) {
+					travelTo(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+					reLocalize(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+				} else {
+					travelTo(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+					reLocalize(TUNNEL_LL[0] + 1, TUNNEL_LL[1] - 1);
+				}
 			}
 		}
 	}
