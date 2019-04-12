@@ -260,9 +260,6 @@ public class Identifier {
     public int identifyCan() {
         takeSamples();
         int match = findMatch();
-        if(match == -1) {
-            return match;
-        }
         
         beep(match, Navigation.weight());
         return match;
@@ -365,12 +362,7 @@ public class Identifier {
             } 
         }
         
-        if(errors[j] <= 9) {
-            return j + 1; 
-        } else {
-            return -1;
-        }
-        
+        return j + 1;
     }
     
     /**

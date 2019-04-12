@@ -3,6 +3,7 @@ package ca.mcgill.ecse211.Project;
 import java.util.Map;
 
 import ca.mcgill.ecse211.WiFiClient.WifiConnection;
+import lejos.hardware.Button;
 import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
@@ -13,7 +14,7 @@ import lejos.robotics.SampleProvider;
 public class MainProgram {
 
     // ** Set these as appropriate for your team and current situation **
-    private static final String SERVER_IP = "192.168.2.4";
+    private static final String SERVER_IP = "192.168.2.6";
     private static final int TEAM_NUMBER = 4;
 
     // Enable/disable printing of debug info from the WiFi class
@@ -35,7 +36,8 @@ public class MainProgram {
 
     @SuppressWarnings("rawtypes")
     public static void main(String[] args) {
-    	//Initialize WifiConnection class
+        //Initialize WifiConnection class
+        
         WifiConnection conn = new WifiConnection(SERVER_IP, TEAM_NUMBER, ENABLE_DEBUG_WIFI_PRINT);
 
         int[] ll = new int[2];
@@ -93,12 +95,15 @@ public class MainProgram {
         double[] tunnelRight = {tunnel_ur[0] + 1, tunnel_ur[1] - .5};
         int[] startPos = {ll[0] + 1, ll[1] + 1};
 
-        NAV.setup(sz_ll, sz_ur, startCorner, ll, ur, island_ll, island_ur, tunnel_ll, tunnel_ur);
+        NAV.setup(sz_ll, sz_ur, 0, ll, ur, island_ll, island_ur, tunnel_ll, tunnel_ur);
         ODO.start();
         NAV.localize();
         NAV.passTheTunnel(true);
         NAV.travelTo(sz_ll);
         NAV.reLocalize(sz_ll[0], sz_ll[1]);
+        Sound.beep();
+        Sound.beep();
+        Sound.beep();
         NAV.search();
         NAV.setSpeed(450);
         NAV.setAcceleration(1200);

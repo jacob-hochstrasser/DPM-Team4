@@ -33,6 +33,7 @@ public class Navigation {
 	 * Angular velocity of the motors
 	 */
 	volatile private static int SPEED = 450;
+	volatile private static int LOCALIZING_SPEED = 200;
 	/**
 	 * Time interval used for thread timing
 	 */
@@ -311,7 +312,7 @@ public class Navigation {
         dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
         
         turnLeft(dTheta);
-        setSpeed(SPEED);
+        setSpeed(speed);
 	}
 	
 	private boolean leftToRightOrUpToDownAsForward() {
@@ -882,8 +883,10 @@ public class Navigation {
 			travelTo(SEARCH_LL);
 		} else {
 			if(isInTheRange(SEARCH_LL, SEARCH_UR, nextPos)) {
-				travelTo(nextPos);
-				return search();
+			    travelTo(SEARCH_LL);
+			    return betterThisTime;
+				//travelTo(nextPos);
+				//return search();
 			}
 			travelTo(SEARCH_LL);
 		}
@@ -996,11 +999,12 @@ public class Navigation {
 	 * 
 	 */
 	public void localize() {
+	    int speed = SPEED;
+	    setSpeed(LOCALIZING_SPEED);
 		ultrasonicLoc();
 		turnRight(90);
 		moveForward(10);
 		turnTo(0);
-		int speed = SPEED;
 		setSpeed(200);
 		lightLoc();
 		turnRight(90);
@@ -1065,8 +1069,8 @@ public class Navigation {
         boolean left = false, right = false;
         double leftDetection = 0, rightDetection = 0;
         
-        //int speed = SPEED;
-        //setSpeed(200);
+        int speed = SPEED;
+        setSpeed(200);
         LEFT_MOTOR.forward();
         RIGHT_MOTOR.forward();
         do {
@@ -1085,7 +1089,7 @@ public class Navigation {
             	}
             }
         } while(!left||!right);
-        //setSpeed(speed);
+        setSpeed(speed);
         
         diff = 2 * Math.PI * RADIUS * (rightDetection - leftDetection) / 360;
         dTheta = Math.toDegrees(Math.atan(diff/LS_DIFF));
@@ -1131,7 +1135,7 @@ public class Navigation {
         LEFT_MOTOR.backward();
         RIGHT_MOTOR.forward();
         
-        try {Thread.sleep(TIME_INTERVAL*10);} catch (InterruptedException e) {}
+        try {Thread.sleep(TIME_INTERVAL* 10);} catch (InterruptedException e) {}
         
         d1 = US.getData();
         d2 = 0;
