@@ -7,13 +7,13 @@
  * @author Michael Smith
  */
 
-package ca.mcgill.ecse211.FinalProject;
+package ca.mcgill.ecse211.Project;
 
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import java.lang.Math;
 
 /**
- * This class implements the Odometer for ECSE211 Lab 4 on the 
+ * This class implements the odometer on the 
  * Lego EV3 platform.
  * 
  *  @author Julie Bellia, Pengnan Fan
@@ -24,25 +24,52 @@ import java.lang.Math;
 public class Odometer extends Thread {
   
   //------<Important Constant>------//
+  /**
+   * The width from wheel to wheel (in cm)
+   */
   private final double TRACK = Navigation.TRACK;
+  /**
+   * The wheel radius (in cm)
+   */
   private final double RADIUS = Navigation.RADIUS;
+  /**
+   * Odometer update period (in ms)
+   */
   private static final long ODOMETER_PERIOD = 10; // odometer update period in ms
   
   //------<Counter>------//
+  /**
+   * Tachometer value of the left motor (in degrees)
+   */
   private int leftMotorTachoCount;
+  /**
+   * Tachometer value of the right motor (in degrees)
+   */
   private int rightMotorTachoCount;
   
   //------<Motors>------//
+  /**
+   * Reference to the left driving motor
+   */
   private EV3LargeRegulatedMotor leftMotor = Navigation.LEFT_MOTOR;
+  /**
+   * Reference to the right driving motor
+   */
   private EV3LargeRegulatedMotor rightMotor = Navigation.RIGHT_MOTOR;
   
   //------<Position>------//
+  /**
+   * The robot's current position (in cm)
+   */
   private static double[] position = new double[] {0,0,0};
 
+  /**
+   * 
+   */
   public Odometer() {}
   
   /**
-   *  run method (required for Thread)
+   *  This method runs the odometer.
    */
   public void run() {
     long updateStart, updateEnd;
@@ -91,34 +118,39 @@ public class Odometer extends Thread {
   }
   
   /**
-   * This method returns a double array of current positions
+   * This method returns a double array of current positions.
    * @return
+   * This methods returns a 3-element array of current X, Y, and orientation.
    */
   public static double[] getPosition() {
 	return position;
   }
   
+  public static double getX() {return position[0];}
+  
+  public static double getY() {return position[1];}
   /**
-   * This method returns the current angle data
+   * This method returns the current orientation.
    * @return
+   * This method returns a double value of the current theta.
    */
   public static double getT() {return position[2];}
   
   /**
    * This method sets the horizontal position as x
-   * @param x
+   * @param x new x coordinate
    */
   public static void setX(double x) {position[0] = x;}
   
   /**
    * This method sets the vertical position as y
-   * @param y
+   * @param y new y coordinate
    */
   public static void setY(double y) {position[1] = y;}
   
   /**
    * This method sets the angular position as t 
-   * @param t
+   * @param t the new heading in degrees
    */
   public static void setT(double t) {position[2] = t;}
   
